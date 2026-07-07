@@ -8,7 +8,11 @@ Automatically skips YouTube ads on Android using an **Accessibility Service** â€
 
 | Home screen                              | Enabled state                                 |
 |------------------------------------------|-----------------------------------------------|
+<<<<<<< HEAD
 | ![Home screen](home.png) | ![Enabled state](enabled.png) |
+=======
+| ![Home screen](app/screenshots/home.png) | ![Enabled state](app/screenshots/enabled.png) |
+>>>>>>> 074d4d585b17273e50cf6c142253483aa1cf805e
 
 ## How it works
 
