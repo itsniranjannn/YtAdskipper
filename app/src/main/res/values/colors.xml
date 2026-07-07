@@ -1,0 +1,25 @@
+<resources>
+    <!-- Base dark surface tones -->
+    <color name="bg_root">#0B0D12</color>
+    <color name="bg_root_end">#12151D</color>
+    <color name="surface_card">#1A1E28</color>
+    <color name="surface_card_border">#262B38</color>
+
+    <!-- Accent -->
+    <color name="accent">#6C5CE7</color>
+    <color name="accent_dim">#4B3FB0</color>
+
+    <!-- Status -->
+    <color name="status_active">#2ECC71</color>
+    <color name="status_inactive">#E74C3C</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F2F3F7</color>
+    <color name="text_secondary">#9AA0AE</color>
+    <color name="text_footer">#5A6070</color>
+
+    <!-- legacy (kept so nothing else in the project breaks) -->
+    <color name="purple_500">#6C5CE7</color>
+    <color name="purple_700">#4B3FB0</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Ad Skipper YT</string>
+    <string name="accessibility_service_label">Ad Skipper YT Service</string>
+    <string name="accessibility_service_description">
+        Detects the "Skip Ad" button inside the YouTube app and taps it
+        automatically. Only monitors the YouTube app\'s screen content —
+        no other apps, no personal data, no network access.
+    </string>
+</resources>
