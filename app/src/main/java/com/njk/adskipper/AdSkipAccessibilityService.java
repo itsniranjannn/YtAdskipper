@@ -1,6 +1,8 @@
 package com.njk.adskipper;
 
 import android.accessibilityservice.AccessibilityService;
+import android.annotation.SuppressLint;
+import android.media.AudioManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -14,7 +16,8 @@ import java.util.List;
  * Watches the YouTube app's screen (and only YouTube's, see
  * accessibility_service_config.xml -> android:packageNames) for a node
  * whose text/content-description matches known "Skip Ad" labels, and
- * performs a click on it.
+ * performs a click on it. It also mutes device media volume for as long
+ * as ad-related UI is on screen, and restores it afterwards.
  *
  * This does NOT:
  *  - read or modify YouTube's app code
@@ -23,8 +26,10 @@ import java.util.List;
  *  - collect or transmit any data off-device
  *
  * It only automates something a human could already do by tapping the
- * screen themselves, once the button becomes visible.
+ * screen (or the volume buttons) themselves, once the button becomes
+ * visible.
  */
+@SuppressLint("AccessibilityPolicy")
 public class AdSkipAccessibilityService extends AccessibilityService {
 
     private static final String TAG = "AdSkipService";
@@ -39,6 +44,22 @@ public class AdSkipAccessibilityService extends AccessibilityService {
             "skip"
     };
 
+    // Broader set used only to decide "an ad is currently on screen", for
+    // muting — covers the pre-skip countdown window too, not just the
+    // moment the Skip button itself appears. Best-effort: YouTube's exact
+    // ad-badge wording varies by version/region, so this may miss some
+    // unskippable ads or occasionally mute a beat early/late.
+    private static final String[] AD_PRESENCE_LABELS = {
+            "Skip Ad",
+            "Skip ad",
+            "Skip Ads",
+            "Skip ads",
+            "skip",
+            "Visit advertiser",
+            "Ad ·",
+            "Sponsored"
+    };
+
     // Debounce: the view tree fires TYPE_WINDOW_CONTENT_CHANGED repeatedly
     // during the skip-button's own tap/dismiss animation (multiple layout
     // passes in <500ms), so without this the same click gets attempted
@@ -47,6 +68,10 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     private static final long CLICK_COOLDOWN_MS = 800;
     private long lastClickTimeMs = 0L;
 
+    private AudioManager audioManager;
+    private boolean mutedByUs = false;
+    private int savedVolume = -1;
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
@@ -54,19 +79,68 @@ public class AdSkipAccessibilityService extends AccessibilityService {
             return;
         }
 
-        long now = SystemClock.elapsedRealtime();
-        if (now - lastClickTimeMs < CLICK_COOLDOWN_MS) {
-            return; // still inside cooldown from the last successful click
-        }
-
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null) return;
 
         try {
+            // Mute tracking runs on every event, independent of the click
+            // cooldown below — otherwise volume would stay muted/unmuted
+            // stale during the cooldown window.
+            updateMuteState(isAdCurrentlyShowing(root));
+
+            long now = SystemClock.elapsedRealtime();
+            if (now - lastClickTimeMs < CLICK_COOLDOWN_MS) {
+                return; // still inside cooldown from the last successful click
+            }
             findAndClickSkipButton(root, now);
         } finally {
             root.recycle();
         }
+    }
+
+    /**
+     * Returns true if any ad-presence indicator (skip button, pre-skip
+     * countdown badge, "Visit advertiser", etc.) is currently on screen.
+     */
+    private boolean isAdCurrentlyShowing(AccessibilityNodeInfo root) {
+        for (String label : AD_PRESENCE_LABELS) {
+            List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText(label);
+            if (matches != null && !matches.isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mutes the device's media volume while an ad is showing and restores
+     * the user's previous volume once it's gone (skipped or ended).
+     *
+     * Note: this mutes the whole media stream, not just YouTube — Android
+     * doesn't allow a normal accessibility service to scope volume changes
+     * to a single app's audio session. It's restored the moment the ad
+     * indicator disappears.
+     */
+    private void updateMuteState(boolean adShowing) {
+        if (audioManager == null) return;
+
+        if (adShowing && !mutedByUs) {
+            savedVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
+            mutedByUs = true;
+            Log.d(TAG, "Ad detected, muted media volume (was " + savedVolume + ")");
+        } else if (!adShowing && mutedByUs) {
+            restoreVolume();
+        }
+    }
+
+    private void restoreVolume() {
+        if (audioManager != null && mutedByUs && savedVolume >= 0) {
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, savedVolume, 0);
+            Log.d(TAG, "Ad gone, restored media volume to " + savedVolume);
+        }
+        mutedByUs = false;
+        savedVolume = -1;
     }
 
     /**
@@ -122,11 +196,19 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     @Override
     public void onInterrupt() {
         Log.d(TAG, "Accessibility service interrupted");
+        restoreVolume(); // never leave the device stuck muted
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         Log.d(TAG, "AdSkipAccessibilityService connected");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        restoreVolume(); // service turned off (or app killed) mid-ad — don't leave it muted
     }
 }

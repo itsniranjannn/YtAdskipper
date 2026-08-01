@@ -5,6 +5,7 @@
     android:background="@drawable/bg_root_gradient">
 
     <LinearLayout
+        android:id="@+id/rootContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -12,18 +13,13 @@
         android:padding="28dp">
 
         <!-- Logo -->
-        <FrameLayout
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/bg_logo_circle"
-            android:layout_marginBottom="20dp">
-            <ImageView
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_skip"
-                android:contentDescription="@string/app_name" />
-        </FrameLayout>
+        <ImageView
+            android:id="@+id/logoImage"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/ic_app_logo"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/app_name" />
 
         <!-- Title -->
         <TextView
@@ -66,12 +62,26 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="14dp">
 
-                <View
-                    android:id="@+id/statusDot"
+                <FrameLayout
                     android:layout_width="9dp"
                     android:layout_height="9dp"
-                    android:background="@drawable/dot_inactive"
-                    android:layout_marginEnd="8dp" />
+                    android:layout_marginEnd="8dp">
+
+                    <View
+                        android:id="@+id/statusRing"
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/dot_active"
+                        android:alpha="0" />
+
+                    <View
+                        android:id="@+id/statusDot"
+                        android:layout_width="9dp"
+                        android:layout_height="9dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/dot_inactive" />
+                </FrameLayout>
 
                 <TextView
                     android:id="@+id/statusLabel"
@@ -107,7 +117,7 @@
             android:textSize="15sp"
             android:background="@drawable/bg_button"
             android:elevation="0dp"
-            android:stateListAnimator="@null" />
+            android:stateListAnimator="@animator/button_press" />
 
     </LinearLayout>
 
