@@ -1,8 +1,11 @@
 package com.njk.adskipper;
 
+import android.accessibilityservice.AccessibilityButtonController;
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.media.AudioManager;
+import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -68,9 +71,37 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     private static final long CLICK_COOLDOWN_MS = 800;
     private long lastClickTimeMs = 0L;
 
+    // YouTube fires TYPE_WINDOW_CONTENT_CHANGED very frequently during
+    // normal playback (progress ticks, view updates) even when nothing
+    // ad-related is happening. Without a floor on how often we actually do
+    // a tree scan, every one of those events triggers up to ~13 full-tree
+    // text searches (8 ad-presence labels + 5 skip labels), which is heavy
+    // enough on system_server's accessibility dispatch to be felt as
+    // system-wide lag, not just app-local slowness. This throttle caps how
+    // often we scan at all; a 200ms floor still catches a skip button well
+    // within a human-perceptible window.
+    private static final long SCAN_THROTTLE_MS = 200;
+    private long lastScanTimeMs = 0L;
+
     private AudioManager audioManager;
     private boolean mutedByUs = false;
     private int savedVolume = -1;
+
+    // Persisted so MainActivity can read/observe the same value. The
+    // accessibility button below can't truly enable/disable the service
+    // (Android only allows a service to self-disable, never self-enable —
+    // that permission must be granted by the user in Settings), so this is
+    // a lighter-weight pause: skip-clicking and muting are suspended, but
+    // the service itself stays registered.
+    public static final String PREFS_NAME = "ad_skipper_prefs";
+    public static final String KEY_PAUSED = "paused";
+
+    // The accessibility-button callback moved off AccessibilityService and
+    // onto a separate AccessibilityButtonController object (API 30+), so we
+    // register a callback on it instead of overriding a method. Guarded for
+    // API 30+ since minSdk is 24 — on older devices the button feature is
+    // simply unavailable and the service runs without it.
+    private AccessibilityButtonController.AccessibilityButtonCallback accessibilityButtonCallback;
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -83,12 +114,22 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         if (root == null) return;
 
         try {
-            // Mute tracking runs on every event, independent of the click
-            // cooldown below — otherwise volume would stay muted/unmuted
-            // stale during the cooldown window.
-            updateMuteState(isAdCurrentlyShowing(root));
+            if (isPaused()) {
+                restoreVolume(); // don't leave audio muted while paused
+                return;
+            }
 
             long now = SystemClock.elapsedRealtime();
+            if (now - lastScanTimeMs < SCAN_THROTTLE_MS) {
+                return; // too soon since the last full-tree scan, skip this burst of events
+            }
+            lastScanTimeMs = now;
+
+            // Mute tracking runs on every throttled scan, independent of the
+            // click cooldown below — otherwise volume would stay muted/
+            // unmuted stale during the click cooldown window.
+            updateMuteState(isAdCurrentlyShowing(root));
+
             if (now - lastClickTimeMs < CLICK_COOLDOWN_MS) {
                 return; // still inside cooldown from the last successful click
             }
@@ -105,9 +146,12 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     private boolean isAdCurrentlyShowing(AccessibilityNodeInfo root) {
         for (String label : AD_PRESENCE_LABELS) {
             List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText(label);
-            if (matches != null && !matches.isEmpty()) {
-                return true;
+            if (matches == null) continue;
+            boolean found = !matches.isEmpty();
+            for (AccessibilityNodeInfo m : matches) {
+                if (m != null) m.recycle();
             }
+            if (found) return true;
         }
         return false;
     }
@@ -159,18 +203,28 @@ public class AdSkipAccessibilityService extends AccessibilityService {
 
             if (matches == null) continue;
 
+            boolean clicked = false;
             for (AccessibilityNodeInfo match : matches) {
+                if (clicked) {
+                    match.recycle();
+                    continue;
+                }
                 AccessibilityNodeInfo clickable = findClickableSelfOrParent(match);
-                if (clickable == null) continue;
+                if (clickable == null) {
+                    match.recycle();
+                    continue;
+                }
 
                 boolean success = clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 Log.d(TAG, "Attempted skip click, success=" + success);
 
                 if (success) {
                     lastClickTimeMs = eventTimeMs;
-                    return; // done for this pass, cooldown handles the rest
+                    clicked = true;
                 }
+                match.recycle();
             }
+            if (clicked) return; // done for this pass, cooldown handles the rest
         }
     }
 
@@ -193,6 +247,55 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         return null;
     }
 
+    /**
+     * Registers a callback with the system's AccessibilityButtonController
+     * so tapping the floating accessibility button flips the pause flag.
+     * Only available on API 30+; on older API levels this is a no-op and
+     * the service still works fine minus that one button.
+     */
+    private void registerAccessibilityButtonCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            Log.d(TAG, "Accessibility button controller requires API 30+, skipping on this device");
+            return;
+        }
+
+        accessibilityButtonCallback = new AccessibilityButtonController.AccessibilityButtonCallback() {
+            @Override
+            public void onClicked(AccessibilityButtonController controller) {
+                boolean nowPaused = !isPaused();
+                getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(KEY_PAUSED, nowPaused)
+                        .apply();
+
+                if (nowPaused) {
+                    restoreVolume(); // don't leave audio muted while paused
+                }
+                Log.d(TAG, "Accessibility button tapped, paused=" + nowPaused);
+            }
+
+            @Override
+            public void onAvailabilityChanged(AccessibilityButtonController controller, boolean available) {
+                Log.d(TAG, "Accessibility button available=" + available);
+            }
+        };
+
+        getAccessibilityButtonController().registerAccessibilityButtonCallback(accessibilityButtonCallback);
+    }
+
+    private void unregisterAccessibilityButtonCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || accessibilityButtonCallback == null) {
+            return;
+        }
+        getAccessibilityButtonController().unregisterAccessibilityButtonCallback(accessibilityButtonCallback);
+        accessibilityButtonCallback = null;
+    }
+
+    private boolean isPaused() {
+        return getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_PAUSED, false);
+    }
+
     @Override
     public void onInterrupt() {
         Log.d(TAG, "Accessibility service interrupted");
@@ -203,12 +306,14 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     protected void onServiceConnected() {
         super.onServiceConnected();
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        registerAccessibilityButtonCallback();
         Log.d(TAG, "AdSkipAccessibilityService connected");
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+        unregisterAccessibilityButtonCallback();
         restoreVolume(); // service turned off (or app killed) mid-ad — don't leave it muted
     }
 }

@@ -52,6 +52,7 @@
             android:layout_marginBottom="24dp">
 
             <LinearLayout
+                android:id="@+id/statusPill"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
@@ -126,10 +127,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="20dp"
-        android:text="Built by Niranjan"
-        android:textColor="@color/text_footer"
-        android:textSize="12sp"
+        android:layout_marginBottom="32dp"
+        android:text="Built by Niranjan.K"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.02"
         android:textAlignment="center" />
 
 </FrameLayout>
