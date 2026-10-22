@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Concept A: Skip-slash. Two forward-skip chevrons severed by an angled diagonal negative space slash. -->
+    <path
+        android:fillColor="#F5EBD0"
+        android:pathData="M32,34 L48,50 L48,46 L36,34 Z" />
+    <path
+        android:fillColor="#F5EBD0"
+        android:pathData="M32,48 L54,70 L48,70 L32,54 Z" />
+    <path
+        android:fillColor="#F5EBD0"
+        android:pathData="M54,34 L76,56 L70,56 L54,40 Z" />
+    <path
+        android:fillColor="#F5EBD0"
+        android:pathData="M54,58 L66,70 L54,70 Z" />
+</vector>

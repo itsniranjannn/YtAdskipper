@@ -1,34 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="240dp"
-    android:height="240dp"
-    android:viewportWidth="240"
-    android:viewportHeight="240">
-
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Scaled Concept A Skip-Slash: [0..108] mapped to [0..24] -->
+    <!-- Scale factor: 24/108 = 0.2222 -->
     <path
-        android:pathData="M0,52 A52,52 0 0 1 52,0 L188,0 A52,52 0 0 1 240,52 L240,188 A52,52 0 0 1 188,240 L52,240 A52,52 0 0 1 0,188 Z"
-        android:fillColor="#0F1016"/>
-
+        android:fillColor="@color/brand_sand"
+        android:pathData="M7.11,7.56 L10.67,11.11 L10.67,10.22 L8.00,7.56 Z" />
     <path
-        android:pathData="M120,42 A78,78 0 1 1 119.99,42"
-        android:strokeColor="#2600E5A0"
-        android:strokeWidth="5"
-        android:fillColor="#00000000"/>
-
+        android:fillColor="@color/brand_sand"
+        android:pathData="M7.11,10.67 L12.00,15.56 L10.67,15.56 L7.11,12.00 Z" />
     <path
-        android:pathData="M78,70 L78,170 L150,120 Z"
-        android:fillColor="#00E5A0"/>
+        android:fillColor="@color/brand_sand"
+        android:pathData="M12.00,7.56 L16.89,12.44 L15.56,12.44 L12.00,8.89 Z" />
     <path
-        android:pathData="M140,70 L140,170 L178,120 Z"
-        android:fillColor="#00B8FF"
-        android:fillAlpha="0.85"/>
-
-    <path
-        android:pathData="M183,183 m-11,0 a11,11 0 1 1 22,0 a11,11 0 1 1 -22,0"
-        android:fillColor="#00E5A0"/>
-    <path
-        android:pathData="M183,183 m-11,0 a11,11 0 1 1 22,0 a11,11 0 1 1 -22,0"
-        android:strokeColor="#0F1016"
-        android:strokeWidth="3"
-        android:fillColor="#00000000"/>
-
+        android:fillColor="@color/brand_sand"
+        android:pathData="M12.00,12.89 L14.67,15.56 L12.00,15.56 Z" />
 </vector>

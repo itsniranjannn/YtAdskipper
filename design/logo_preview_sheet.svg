@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 850" width="100%" height="100%" style="background:#14030A; font-family:'Inter', sans-serif;">
+  <defs>
+    <style>
+      .title { fill: #F5EBD0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+      .subtitle { fill: #CDBF9F; font-size: 14px; }
+      .section-label { fill: #CDBF9F; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+      .size-label { fill: #CDBF9F; font-size: 13px; font-family: monospace; }
+      .concept-title { fill: #F5EBD0; font-size: 16px; font-weight: 600; }
+      .concept-desc { fill: #CDBF9F; font-size: 13px; }
+      .tile { fill: #7F011F; stroke: #4A1424; stroke-width: 1; rx: 20; }
+      .badge-chosen { fill: #7BD88F; font-size: 11px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <!-- Header -->
+  <text x="60" y="60" class="title">Adieu — Brand Identity &amp; Mark Explorations</text>
+  <text x="60" y="90" class="subtitle">Comparative evaluation across 192dp, 48dp, and 24dp display scales on Brand Wine (#7F011F).</text>
+
+  <!-- Column Headers -->
+  <text x="60" y="160" class="section-label">Concept / Philosophy</text>
+  <text x="380" y="160" class="section-label">192dp Hero Canvas</text>
+  <text x="630" y="160" class="section-label">48dp App Tile</text>
+  <text x="750" y="160" class="section-label">24dp Micro / Status</text>
+  <text x="860" y="160" class="section-label">Evaluation Verdict</text>
+
+  <line x1="60" y1="180" x2="1040" y2="180" stroke="#4A1424" stroke-width="1"/>
+
+  <!-- ROW 1: CONCEPT A -->
+  <g transform="translate(0, 210)">
+    <text x="60" y="30" class="concept-title">Concept A: "Skip-slash"</text>
+    <text x="60" y="55" class="concept-desc">Twin right-pointing skip chevrons severed</text>
+    <text x="60" y="75" class="concept-desc">by a 45° diagonal dismissal slash.</text>
+    <text x="60" y="105" class="badge-chosen">★ CHOSEN FOR PRODUCTION</text>
+
+    <!-- 192dp display -->
+    <rect x="380" y="0" width="192" height="192" rx="36" fill="#7F011F" stroke="#4A1424" stroke-width="2"/>
+    <g transform="translate(380, 0) scale(1.777)">
+      <path fill="#F5EBD0" d="M32,34 L48,50 L48,46 L36,34 Z" />
+      <path fill="#F5EBD0" d="M32,48 L54,70 L48,70 L32,54 Z" />
+      <path fill="#F5EBD0" d="M54,34 L76,56 L70,56 L54,40 Z" />
+      <path fill="#F5EBD0" d="M54,58 L66,70 L54,70 Z" />
+    </g>
+
+    <!-- 48dp display -->
+    <rect x="630" y="72" width="48" height="48" rx="10" fill="#7F011F" stroke="#4A1424"/>
+    <g transform="translate(630, 72) scale(0.444)">
+      <path fill="#F5EBD0" d="M32,34 L48,50 L48,46 L36,34 Z" />
+      <path fill="#F5EBD0" d="M32,48 L54,70 L48,70 L32,54 Z" />
+      <path fill="#F5EBD0" d="M54,34 L76,56 L70,56 L54,40 Z" />
+      <path fill="#F5EBD0" d="M54,58 L66,70 L54,70 Z" />
+    </g>
+
+    <!-- 24dp display -->
+    <rect x="750" y="84" width="24" height="24" rx="5" fill="#7F011F"/>
+    <g transform="translate(750, 84) scale(0.222)">
+      <path fill="#F5EBD0" d="M32,34 L48,50 L48,46 L36,34 Z" />
+      <path fill="#F5EBD0" d="M32,48 L54,70 L48,70 L32,54 Z" />
+      <path fill="#F5EBD0" d="M54,34 L76,56 L70,56 L54,40 Z" />
+      <path fill="#F5EBD0" d="M54,58 L66,70 L54,70 Z" />
+    </g>
+
+    <text x="860" y="55" class="concept-desc">Sharpest optical silhouette at 24dp.</text>
+    <text x="860" y="75" class="concept-desc">Instantly communicates forward skip</text>
+    <text x="860" y="95" class="concept-desc">plus cancellation cut. Non-cliché.</text>
+  </g>
+
+  <line x1="60" y1="430" x2="1040" y2="430" stroke="#4A1424" stroke-width="1"/>
+
+  <!-- ROW 2: CONCEPT B -->
+  <g transform="translate(0, 455)">
+    <text x="60" y="30" class="concept-title">Concept B: "a" Monogram</text>
+    <text x="60" y="55" class="concept-desc">Geometric lowercase 'a' glyph with a</text>
+    <text x="60" y="75" class="concept-desc">forward-skip chevron punched counter.</text>
+
+    <!-- 192dp display -->
+    <rect x="380" y="0" width="192" height="192" rx="36" fill="#7F011F" stroke="#4A1424" stroke-width="2"/>
+    <g transform="translate(380, 0) scale(1.777)">
+      <path fill="#F5EBD0" fill-rule="evenodd" d="M34,42 C34,35 40,32 50,32 L64,32 C68,32 72,35 72,40 L72,68 C72,71 70,74 66,74 L60,74 L60,68 C56,72 50,74 44,74 C36,74 32,69 32,62 C32,54 38,48 50,48 L60,48 L60,44 C60,40 57,38 51,38 C45,38 42,40 40,43 Z M46,54 L58,60 L46,66 Z" />
+    </g>
+
+    <!-- 48dp display -->
+    <rect x="630" y="72" width="48" height="48" rx="10" fill="#7F011F" stroke="#4A1424"/>
+    <g transform="translate(630, 72) scale(0.444)">
+      <path fill="#F5EBD0" fill-rule="evenodd" d="M34,42 C34,35 40,32 50,32 L64,32 C68,32 72,35 72,40 L72,68 C72,71 70,74 66,74 L60,74 L60,68 C56,72 50,74 44,74 C36,74 32,69 32,62 C32,54 38,48 50,48 L60,48 L60,44 C60,40 57,38 51,38 C45,38 42,40 40,43 Z M46,54 L58,60 L46,66 Z" />
+    </g>
+
+    <!-- 24dp display -->
+    <rect x="750" y="84" width="24" height="24" rx="5" fill="#7F011F"/>
+    <g transform="translate(750, 84) scale(0.222)">
+      <path fill="#F5EBD0" fill-rule="evenodd" d="M34,42 C34,35 40,32 50,32 L64,32 C68,32 72,35 72,40 L72,68 C72,71 70,74 66,74 L60,74 L60,68 C56,72 50,74 44,74 C36,74 32,69 32,62 C32,54 38,48 50,48 L60,48 L60,44 C60,40 57,38 51,38 C45,38 42,40 40,43 Z M46,54 L58,60 L46,66 Z" />
+    </g>
+
+    <text x="860" y="55" class="concept-desc">Strong letterform connection, but internal</text>
+    <text x="860" y="75" class="concept-desc">chevron counter fills in at 24dp density,</text>
+    <text x="860" y="95" class="concept-desc">reducing the utility function to a blob.</text>
+  </g>
+
+  <line x1="60" y1="675" x2="1040" y2="675" stroke="#4A1424" stroke-width="1"/>
+
+  <!-- ROW 3: CONCEPT C -->
+  <g transform="translate(0, 700)">
+    <text x="60" y="25" class="concept-title">Concept C: "Exit Arch"</text>
+    <text x="60" y="48" class="concept-desc">Architectural doorway portal framing a</text>
+    <text x="60" y="68" class="concept-desc">single rightward departure arrow.</text>
+
+    <!-- 192dp display -->
+    <rect x="380" y="0" width="120" height="120" rx="24" fill="#7F011F" stroke="#4A1424" stroke-width="2"/>
+    <g transform="translate(380, 0) scale(1.111)">
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M33,74 L33,48 C33,36 42,28 54,28 C66,28 75,36 75,48 L75,74" />
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M27,74 L81,74" />
+      <path fill="#F5EBD0" d="M48,42 L64,52 L48,62 Z" />
+    </g>
+
+    <!-- 48dp display -->
+    <rect x="630" y="36" width="48" height="48" rx="10" fill="#7F011F" stroke="#4A1424"/>
+    <g transform="translate(630, 36) scale(0.444)">
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M33,74 L33,48 C33,36 42,28 54,28 C66,28 75,36 75,48 L75,74" />
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M27,74 L81,74" />
+      <path fill="#F5EBD0" d="M48,42 L64,52 L48,62 Z" />
+    </g>
+
+    <!-- 24dp display -->
+    <rect x="750" y="48" width="24" height="24" rx="5" fill="#7F011F"/>
+    <g transform="translate(750, 48) scale(0.222)">
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M33,74 L33,48 C33,36 42,28 54,28 C66,28 75,36 75,48 L75,74" />
+      <path stroke="#F5EBD0" stroke-width="6" stroke-linecap="square" fill="none" d="M27,74 L81,74" />
+      <path fill="#F5EBD0" d="M48,42 L64,52 L48,62 Z" />
+    </g>
+
+    <text x="860" y="35" class="concept-desc">Metaphorically elegant (departure/exit),</text>
+    <text x="860" y="55" class="concept-desc">but reads like a navigation map pin or</text>
+    <text x="860" y="75" class="concept-desc">building directory rather than ad dismissal.</text>
+  </g>
+</svg>

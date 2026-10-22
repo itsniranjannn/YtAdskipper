@@ -1,22 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-
-    <!-- Adaptive icons keep artwork inside the inner 66dp safe zone (centered).
-         Chevrons sit between x=32 and x=76, y=33 and y=75. -->
+    <!-- Concept A: Skip-Slash mark centered strictly within 66dp safe zone (21..87) -->
     <path
-        android:pathData="M32,33 L32,75 L60,54 Z"
-        android:fillColor="#00E5A0"/>
+        android:fillColor="@color/brand_sand"
+        android:pathData="M32,34 L48,50 L48,46 L36,34 Z" />
     <path
-        android:pathData="M56,33 L56,75 L76,54 Z"
-        android:fillColor="#00B8FF"
-        android:fillAlpha="0.85"/>
-
-    <!-- small status dot, bottom-right -->
+        android:fillColor="@color/brand_sand"
+        android:pathData="M32,48 L54,70 L48,70 L32,54 Z" />
     <path
-        android:pathData="M81,81 m-6,0 a6,6 0 1 1 12,0 a6,6 0 1 1 -12,0"
-        android:fillColor="#00E5A0"/>
-
+        android:fillColor="@color/brand_sand"
+        android:pathData="M54,34 L76,56 L70,56 L54,40 Z" />
+    <path
+        android:fillColor="@color/brand_sand"
+        android:pathData="M54,58 L66,70 L54,70 Z" />
 </vector>

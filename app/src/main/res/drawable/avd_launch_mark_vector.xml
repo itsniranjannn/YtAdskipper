@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Single combined path for smooth 600ms trimPathEnd animation -->
+    <path
+        android:name="logo_path"
+        android:pathData="M32,34 L48,50 L48,46 L36,34 Z M32,48 L54,70 L48,70 L32,54 Z M54,34 L76,56 L70,56 L54,40 Z M54,58 L66,70 L54,70 Z"
+        android:strokeColor="@color/brand_sand"
+        android:strokeWidth="1.5"
+        android:fillColor="@color/brand_sand"
+        android:trimPathEnd="0" />
+</vector>
