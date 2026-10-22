@@ -18,9 +18,19 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir}/release.jks")
+            storePassword = "adskipper123"
+            keyAlias = "adskipper"
+            keyPassword = "adskipper123"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -38,6 +48,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
     implementation("androidx.transition:transition:1.5.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

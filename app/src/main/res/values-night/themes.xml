@@ -19,4 +19,11 @@
         <item name="fontFamily">@font/font_inter</item>
         <item name="switchStyle">@style/Widget.Adieu.Switch</item>
     </style>
+
+    <style name="Theme.Adieu.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_wine</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/avd_launch_mark</item>
+        <item name="windowSplashScreenAnimationDuration">600</item>
+        <item name="postSplashScreenTheme">@style/Theme.AdSkipperYT</item>
+    </style>
 </resources>

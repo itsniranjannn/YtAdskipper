@@ -1,96 +1,252 @@
 package com.njk.adskipper;
 
-import android.animation.ArgbEvaluator;
 import android.animation.Animator;
-import android.animation.AnimatorInflater;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.ContentObserver;
-import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.TransitionDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.view.animation.OvershootInterpolator;
+import android.view.animation.Interpolator;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.transition.AutoTransition;
-import androidx.transition.TransitionManager;
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.splashscreen.SplashScreen;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView statusText;
-    private TextView statusLabel;
+    // Required View IDs (Hard Constraints)
+    private ViewGroup rootContent;
+    private ImageView logoImage;
     private View statusDot;
     private View statusRing;
-    private View statusPill;
-    private ViewGroup rootContent;
+    private TextView statusLabel;
+    private TextView statusText;
+    private Button enableButton;
+    private SwitchMaterial switchAutoSkip;
+    private SwitchMaterial switchMute;
+    private SwitchMaterial switchShield;
 
-    private Animator pulseAnimator;
-    private ValueAnimator pillColorAnimator;
-    private ObjectAnimator logoFloatAnimator;
-    private ObjectAnimator logoBreatheAnimatorX;
-    private ObjectAnimator logoBreatheAnimatorY;
-    private ImageView logoImage;
-    private boolean introPlayed = false;
+    // Redesign Views
+    private View statusRingSecondary;
+    private View heroCard;
+    private View setupHelpCard;
+    private Button helpAppInfoButton;
+    private FrameLayout tileAutoSkip;
+    private FrameLayout tileMute;
+    private FrameLayout tileShield;
+    private View cardAutoSkip;
+    private View cardMute;
+    private View cardShield;
+    private TextView statsTodayNumber;
+    private TextView statsTotalNumber;
 
-    private static final int COLOR_NOT_ENABLED = 0x66FF5A5A; // visible red tint
-    private static final int COLOR_PAUSED = 0x66FFC24B;      // visible amber tint
-    private static final int COLOR_ACTIVE = 0x6650E3A0;      // visible green tint
+    // Animators
+    private AnimatorSet pulseAnimatorSet;
+    private ValueAnimator colorTransitionAnimator;
+    private boolean entrancePlayed = false;
 
-    // Watches Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES directly so the
-    // UI updates the instant the service is toggled — via Settings, the
-    // system accessibility shortcut button, a quick-settings tile, anywhere —
-    // not just when this Activity happens to resume.
+    // State & Preference Observation
     private ContentObserver accessibilitySettingsObserver;
-
-    // Watches the pause flag the accessibility service writes when its
-    // system Accessibility Button is tapped, so pausing/resuming updates
-    // this screen live too, same as enabling/disabling.
     private SharedPreferences prefs;
     private SharedPreferences.OnSharedPreferenceChangeListener prefsListener;
-    private String lastKnownStateKey = null; // "not_enabled" | "paused" | "active"
+    private String lastKnownStateKey = null;
+
+    private final Interpolator fastOutSlowIn = new FastOutSlowInInterpolator();
+    private final DecelerateInterpolator decelerate = new DecelerateInterpolator();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Initialize Core SplashScreen API
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+
+        // Edge-to-Edge handling
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_main);
 
-        prefs = getSharedPreferences(
-                AdSkipAccessibilityService.PREFS_NAME, MODE_PRIVATE);
+        // Splash exit animation: 250ms scale + fade into app
+        splashScreen.setOnExitAnimationListener(splashScreenView -> {
+            if (isAnimationDisabled()) {
+                splashScreenView.remove();
+                return;
+            }
+            final View iconView = splashScreenView.getIconView();
+            if (iconView != null) {
+                iconView.animate()
+                        .scaleX(1.2f)
+                        .scaleY(1.2f)
+                        .alpha(0f)
+                        .setDuration(250)
+                        .setInterpolator(fastOutSlowIn)
+                        .withEndAction(splashScreenView::remove)
+                        .start();
+            } else {
+                splashScreenView.getView().animate()
+                        .alpha(0f)
+                        .setDuration(250)
+                        .setInterpolator(fastOutSlowIn)
+                        .withEndAction(splashScreenView::remove)
+                        .start();
+            }
+        });
 
-        statusText = findViewById(R.id.statusText);
-        statusLabel = findViewById(R.id.statusLabel);
-        statusDot = findViewById(R.id.statusDot);
-        statusRing = findViewById(R.id.statusRing);
-        statusPill = findViewById(R.id.statusPill);
+        // Window Insets Padding
+        View scrollView = findViewById(R.id.scrollView);
+        if (scrollView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(scrollView, (v, windowInsets) -> {
+                Insets insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(v.getPaddingLeft(), insets.top, v.getPaddingRight(), insets.bottom);
+                return WindowInsetsCompat.CONSUMED;
+            });
+        }
+
+        prefs = getSharedPreferences(AdSkipAccessibilityService.PREFS_NAME, MODE_PRIVATE);
+
+        // Bind Required IDs
         rootContent = findViewById(R.id.rootContent);
         logoImage = findViewById(R.id.logoImage);
-        Button enableButton = findViewById(R.id.enableButton);
+        statusDot = findViewById(R.id.statusDot);
+        statusRing = findViewById(R.id.statusRing);
+        statusLabel = findViewById(R.id.statusLabel);
+        statusText = findViewById(R.id.statusText);
+        enableButton = findViewById(R.id.enableButton);
+        switchAutoSkip = findViewById(R.id.switchAutoSkip);
+        switchMute = findViewById(R.id.switchMute);
+        switchShield = findViewById(R.id.switchShield);
 
+        // Bind Redesign Elements
+        statusRingSecondary = findViewById(R.id.statusRingSecondary);
+        heroCard = findViewById(R.id.heroCard);
+        setupHelpCard = findViewById(R.id.setupHelpCard);
+        helpAppInfoButton = findViewById(R.id.helpAppInfoButton);
+        tileAutoSkip = findViewById(R.id.tileAutoSkip);
+        tileMute = findViewById(R.id.tileMute);
+        tileShield = findViewById(R.id.tileShield);
+        cardAutoSkip = findViewById(R.id.cardAutoSkip);
+        cardMute = findViewById(R.id.cardMute);
+        cardShield = findViewById(R.id.cardShield);
+        statsTodayNumber = findViewById(R.id.statsTodayNumber);
+        statsTotalNumber = findViewById(R.id.statsTotalNumber);
+
+        setupSwitches();
+        setupActionButtons();
+        updateStatsView(false);
+
+        playEntranceMotion();
+    }
+
+    private boolean isAnimationDisabled() {
+        float scale = Settings.Global.getFloat(
+                getContentResolver(),
+                Settings.Global.ANIMATOR_DURATION_SCALE, 1.0f);
+        return scale == 0f;
+    }
+
+    private void setupActionButtons() {
         enableButton.setOnClickListener(v -> {
-            // Deep-links to the system Accessibility settings screen.
-            // Android does not allow apps to silently self-enable an
-            // AccessibilityService, by design (it's a sensitive
-            // permission) — the user must manually toggle it on. The
-            // shortcut on/off switch lives on this same native settings
-            // page (inside the service's own detail screen), so this one
-            // button is the single entry point for both.
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
         });
 
-        playLogoIntro(logoImage, rootContent);
+        if (helpAppInfoButton != null) {
+            helpAppInfoButton.setOnClickListener(v -> {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                intent.setData(Uri.fromParts("package", getPackageName(), null));
+                startActivity(intent);
+            });
+        }
+    }
+
+    private void setupSwitches() {
+        switchAutoSkip.setChecked(prefs.getBoolean(AdSkipAccessibilityService.KEY_SKIP_ENABLED, true));
+        switchMute.setChecked(prefs.getBoolean(AdSkipAccessibilityService.KEY_MUTE_ENABLED, true));
+        switchShield.setChecked(prefs.getBoolean(AdSkipAccessibilityService.KEY_SHIELD_ENABLED, true));
+
+        updateTileAppearance(tileAutoSkip, switchAutoSkip.isChecked(), false);
+        updateTileAppearance(tileMute, switchMute.isChecked(), false);
+        updateTileAppearance(tileShield, switchShield.isChecked(), false);
+
+        switchAutoSkip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_SKIP_ENABLED, isChecked).apply();
+            onSwitchToggled(switchAutoSkip, tileAutoSkip, cardAutoSkip, isChecked);
+        });
+
+        switchMute.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_MUTE_ENABLED, isChecked).apply();
+            onSwitchToggled(switchMute, tileMute, cardMute, isChecked);
+        });
+
+        switchShield.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_SHIELD_ENABLED, isChecked).apply();
+            onSwitchToggled(switchShield, tileShield, cardShield, isChecked);
+        });
+    }
+
+    private void onSwitchToggled(View switchView, View tileView, View cardView, boolean isChecked) {
+        // Haptic Feedback
+        switchView.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+
+        // Animate Tile Fill
+        updateTileAppearance(tileView, isChecked, true);
+
+        // 200ms row tint flash
+        if (cardView != null && !isAnimationDisabled()) {
+            cardView.animate().cancel();
+            cardView.setAlpha(0.7f);
+            cardView.animate()
+                    .alpha(1.0f)
+                    .setDuration(200)
+                    .setInterpolator(fastOutSlowIn)
+                    .start();
+        }
+    }
+
+    private void updateTileAppearance(View tile, boolean isChecked, boolean animate) {
+        if (tile == null) return;
+        int targetBg = isChecked ? R.drawable.bg_tile_active : R.drawable.bg_tile_outline;
+        if (!animate || isAnimationDisabled()) {
+            tile.setBackgroundResource(targetBg);
+        } else {
+            tile.animate().cancel();
+            tile.setAlpha(0.4f);
+            tile.setScaleX(0.92f);
+            tile.setScaleY(0.92f);
+            tile.setBackgroundResource(targetBg);
+            tile.animate()
+                    .alpha(1.0f)
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(200)
+                    .setInterpolator(fastOutSlowIn)
+                    .start();
+        }
     }
 
     @Override
@@ -99,13 +255,12 @@ public class MainActivity extends AppCompatActivity {
         registerAccessibilitySettingsObserver();
         registerPausePrefsListener();
         updateStatus();
-        startLogoFloat();
+        updateStatsView(true);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        stopLogoFloat();
         stopStatusPulse();
         unregisterAccessibilitySettingsObserver();
         unregisterPausePrefsListener();
@@ -116,6 +271,9 @@ public class MainActivity extends AppCompatActivity {
         prefsListener = (sharedPreferences, key) -> {
             if (AdSkipAccessibilityService.KEY_PAUSED.equals(key)) {
                 updateStatus();
+            } else if (AdSkipAccessibilityService.KEY_SKIPPED_TODAY.equals(key)
+                    || AdSkipAccessibilityService.KEY_SKIPPED_TOTAL.equals(key)) {
+                updateStatsView(true);
             }
         };
         prefs.registerOnSharedPreferenceChangeListener(prefsListener);
@@ -153,216 +311,272 @@ public class MainActivity extends AppCompatActivity {
 
         String stateKey;
         int dotRes;
-        String label;
-        String text;
+        int targetColor;
+        int labelRes;
+        int descRes;
 
         if (!serviceEnabled) {
             stateKey = "not_enabled";
             dotRes = R.drawable.dot_inactive;
-            label = "NOT ENABLED";
-            text = "Ad Skipper is not enabled yet. Tap below to turn it on.";
+            targetColor = ContextCompat.getColor(this, R.color.status_inactive);
+            labelRes = R.string.status_offline;
+            descRes = R.string.status_desc_offline;
         } else if (paused) {
             stateKey = "paused";
             dotRes = R.drawable.dot_paused;
-            label = "PAUSED";
-            text = "Ad Skipper is paused. Tap the accessibility button again to resume.";
+            targetColor = ContextCompat.getColor(this, R.color.status_paused);
+            labelRes = R.string.status_paused;
+            descRes = R.string.status_desc_paused;
         } else {
             stateKey = "active";
             dotRes = R.drawable.dot_active;
-            label = "ACTIVE";
-            text = "Ad Skipper is active. Open YouTube and ads will be skipped automatically.";
+            targetColor = ContextCompat.getColor(this, R.color.status_active);
+            labelRes = R.string.status_active;
+            descRes = R.string.status_desc_active;
         }
 
         boolean stateChanged = lastKnownStateKey == null || !lastKnownStateKey.equals(stateKey);
         lastKnownStateKey = stateKey;
 
         statusDot.setBackgroundResource(dotRes);
+        if (statusRing != null) statusRing.setBackgroundResource(dotRes);
+        if (statusRingSecondary != null) statusRingSecondary.setBackgroundResource(dotRes);
 
-        TransitionManager.beginDelayedTransition(rootContent, new AutoTransition());
-        statusLabel.setText(label);
-        statusText.setText(text);
+        // Toggle Setup Help Card with smooth 250ms collapse
+        toggleSetupHelpCard(!serviceEnabled);
 
-        int targetColor = stateKey.equals("active") ? COLOR_ACTIVE
-                : stateKey.equals("paused") ? COLOR_PAUSED
-                  : COLOR_NOT_ENABLED;
-        animatePillColor(targetColor);
+        if (!stateChanged || isAnimationDisabled()) {
+            statusLabel.setText(labelRes);
+            statusText.setText(descRes);
+            statusDot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(targetColor));
+        } else {
+            animateHeroStateTransition(labelRes, descRes, targetColor);
+        }
 
-        if (stateKey.equals("active")) {
+        if ("active".equals(stateKey)) {
             startStatusPulse();
         } else {
             stopStatusPulse();
         }
+    }
 
-        // Small confirming "pop" so a state flip is unmistakable even if you
-        // caught it out of the corner of your eye (e.g. after using the
-        // system accessibility button instead of this screen).
-        if (stateChanged) {
-            popStatusDot();
+    private void toggleSetupHelpCard(boolean show) {
+        if (setupHelpCard == null) return;
+        if (show) {
+            if (setupHelpCard.getVisibility() != View.VISIBLE) {
+                setupHelpCard.setVisibility(View.VISIBLE);
+                setupHelpCard.setAlpha(0f);
+                setupHelpCard.setTranslationY(-16f * getResources().getDisplayMetrics().density);
+                setupHelpCard.animate()
+                        .alpha(1f)
+                        .translationY(0f)
+                        .setDuration(250)
+                        .setInterpolator(fastOutSlowIn)
+                        .start();
+            }
+        } else {
+            if (setupHelpCard.getVisibility() == View.VISIBLE) {
+                setupHelpCard.animate()
+                        .alpha(0f)
+                        .translationY(-16f * getResources().getDisplayMetrics().density)
+                        .setDuration(250)
+                        .setInterpolator(fastOutSlowIn)
+                        .withEndAction(() -> setupHelpCard.setVisibility(View.GONE))
+                        .start();
+            }
         }
     }
 
-    /**
-     * Smoothly crossfades the status pill's tint to match the current
-     * state (red/amber/green), instead of the color cutting instantly.
-     * Any in-flight color animation is cancelled first so rapid state
-     * flips (e.g. quick pause/resume taps) don't queue up and stutter.
-     */
-    private void animatePillColor(int targetColor) {
-        if (statusPill == null) return;
-        if (pillColorAnimator != null) {
-            pillColorAnimator.cancel();
-        }
-        Object currentTag = statusPill.getTag();
-        int startColor = (currentTag instanceof Integer) ? (Integer) currentTag : targetColor;
+    private void animateHeroStateTransition(int labelRes, int descRes, int targetColor) {
+        // State word: 150ms out / 150ms in crossfade with 12dp vertical slide
+        float slidePx = 12f * getResources().getDisplayMetrics().density;
 
-        pillColorAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, targetColor);
-        pillColorAnimator.setDuration(320);
-        pillColorAnimator.setInterpolator(new DecelerateInterpolator());
-        pillColorAnimator.addUpdateListener(anim ->
-                statusPill.setBackgroundTintList(
-                        android.content.res.ColorStateList.valueOf((int) anim.getAnimatedValue())));
-        statusPill.setTag(targetColor);
-        pillColorAnimator.start();
-    }
-
-    private void popStatusDot() {
-        statusDot.animate().cancel();
-        statusDot.setScaleX(1f);
-        statusDot.setScaleY(1f);
-        statusDot.animate()
-                .scaleX(1.8f).scaleY(1.8f)
-                .setDuration(140)
-                .setInterpolator(new OvershootInterpolator())
-                .withEndAction(() -> statusDot.animate()
-                        .scaleX(1f).scaleY(1f)
-                        .setDuration(160)
-                        .start())
+        statusLabel.animate().cancel();
+        statusLabel.animate()
+                .alpha(0f)
+                .translationY(-slidePx)
+                .setDuration(150)
+                .setInterpolator(fastOutSlowIn)
+                .withEndAction(() -> {
+                    statusLabel.setText(labelRes);
+                    statusLabel.setTranslationY(slidePx);
+                    statusLabel.animate()
+                            .alpha(1f)
+                            .translationY(0f)
+                            .setDuration(150)
+                            .setInterpolator(fastOutSlowIn)
+                            .start();
+                })
                 .start();
+
+        // Status text update
+        statusText.setText(descRes);
+
+        // Dot & Ring color tween over 300ms (ArgbEvaluator)
+        if (colorTransitionAnimator != null) {
+            colorTransitionAnimator.cancel();
+        }
+        int startColor = ContextCompat.getColor(this, R.color.brand_sand);
+        colorTransitionAnimator = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, targetColor);
+        colorTransitionAnimator.setDuration(300);
+        colorTransitionAnimator.setInterpolator(fastOutSlowIn);
+        colorTransitionAnimator.addUpdateListener(anim -> {
+            int c = (int) anim.getAnimatedValue();
+            statusDot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(c));
+        });
+        colorTransitionAnimator.start();
+
+        // Hero Panel: subtle 1.00 -> 1.02 -> 1.00 scale settle
+        if (heroCard != null) {
+            heroCard.animate().cancel();
+            heroCard.animate()
+                    .scaleX(1.02f)
+                    .scaleY(1.02f)
+                    .setDuration(150)
+                    .setInterpolator(fastOutSlowIn)
+                    .withEndAction(() -> heroCard.animate()
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(150)
+                            .setInterpolator(fastOutSlowIn)
+                            .start())
+                    .start();
+        }
     }
 
-    // ── Pulsing status ring, only runs while the service is active ────────
     private void startStatusPulse() {
-        if (pulseAnimator != null) return; // already running
-        pulseAnimator = AnimatorInflater.loadAnimator(this, R.animator.pulse_status);
-        pulseAnimator.setTarget(statusRing);
-        pulseAnimator.start();
+        if (pulseAnimatorSet != null || isAnimationDisabled() || statusRing == null) return;
+
+        // Ring 1: scale 1 to 2.6, alpha 0.5 to 0, 1600ms
+        ObjectAnimator ring1ScaleX = ObjectAnimator.ofFloat(statusRing, View.SCALE_X, 1.0f, 2.6f);
+        ObjectAnimator ring1ScaleY = ObjectAnimator.ofFloat(statusRing, View.SCALE_Y, 1.0f, 2.6f);
+        ObjectAnimator ring1Alpha = ObjectAnimator.ofFloat(statusRing, View.ALPHA, 0.5f, 0.0f);
+
+        ring1ScaleX.setRepeatCount(ValueAnimator.INFINITE);
+        ring1ScaleY.setRepeatCount(ValueAnimator.INFINITE);
+        ring1Alpha.setRepeatCount(ValueAnimator.INFINITE);
+
+        ring1ScaleX.setDuration(1600);
+        ring1ScaleY.setDuration(1600);
+        ring1Alpha.setDuration(1600);
+
+        AnimatorSet ring1Set = new AnimatorSet();
+        ring1Set.playTogether(ring1ScaleX, ring1ScaleY, ring1Alpha);
+
+        // Ring 2: offset by 800ms
+        AnimatorSet ring2Set = null;
+        if (statusRingSecondary != null) {
+            ObjectAnimator ring2ScaleX = ObjectAnimator.ofFloat(statusRingSecondary, View.SCALE_X, 1.0f, 2.6f);
+            ObjectAnimator ring2ScaleY = ObjectAnimator.ofFloat(statusRingSecondary, View.SCALE_Y, 1.0f, 2.6f);
+            ObjectAnimator ring2Alpha = ObjectAnimator.ofFloat(statusRingSecondary, View.ALPHA, 0.5f, 0.0f);
+
+            ring2ScaleX.setRepeatCount(ValueAnimator.INFINITE);
+            ring2ScaleY.setRepeatCount(ValueAnimator.INFINITE);
+            ring2Alpha.setRepeatCount(ValueAnimator.INFINITE);
+
+            ring2ScaleX.setDuration(1600);
+            ring2ScaleY.setDuration(1600);
+            ring2Alpha.setDuration(1600);
+            ring2ScaleX.setStartDelay(800);
+            ring2ScaleY.setStartDelay(800);
+            ring2Alpha.setStartDelay(800);
+
+            ring2Set = new AnimatorSet();
+            ring2Set.playTogether(ring2ScaleX, ring2ScaleY, ring2Alpha);
+        }
+
+        pulseAnimatorSet = new AnimatorSet();
+        if (ring2Set != null) {
+            pulseAnimatorSet.playTogether(ring1Set, ring2Set);
+        } else {
+            pulseAnimatorSet.play(ring1Set);
+        }
+        pulseAnimatorSet.start();
     }
 
     private void stopStatusPulse() {
-        if (pulseAnimator != null) {
-            pulseAnimator.cancel();
-            pulseAnimator = null;
+        if (pulseAnimatorSet != null) {
+            pulseAnimatorSet.cancel();
+            pulseAnimatorSet = null;
         }
-        statusRing.setScaleX(1f);
-        statusRing.setScaleY(1f);
-        statusRing.setAlpha(0f);
-    }
-
-    // ── Idle "breathing" float on the logo — a small, slow up/down drift
-    // that only runs while the screen is actually visible (started in
-    // onResume, stopped in onPause), so it costs nothing while the app is
-    // backgrounded. Small amplitude on purpose: this is ambient texture,
-    // not something meant to draw the eye away from the status card.
-    // ── Idle logo motion — a clearly visible float + breathing scale, so
-    // the page doesn't feel static. Runs only while the screen is visible
-    // (started in onResume, stopped in onPause), so it costs nothing while
-    // the app is backgrounded.
-    private void startLogoFloat() {
-        if (logoFloatAnimator != null || logoImage == null) return;
-
-        float amplitudePx = 14 * getResources().getDisplayMetrics().density;
-        logoFloatAnimator = ObjectAnimator.ofFloat(logoImage, View.TRANSLATION_Y, 0f, -amplitudePx);
-        logoFloatAnimator.setDuration(1400);
-        logoFloatAnimator.setRepeatMode(ValueAnimator.REVERSE);
-        logoFloatAnimator.setRepeatCount(ValueAnimator.INFINITE);
-        logoFloatAnimator.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-        logoFloatAnimator.start();
-
-        logoBreatheAnimatorX = ObjectAnimator.ofFloat(logoImage, View.SCALE_X, 1f, 1.12f);
-        logoBreatheAnimatorX.setDuration(1400);
-        logoBreatheAnimatorX.setStartDelay(700); // let the entrance scale animation settle first
-        logoBreatheAnimatorX.setRepeatMode(ValueAnimator.REVERSE);
-        logoBreatheAnimatorX.setRepeatCount(ValueAnimator.INFINITE);
-        logoBreatheAnimatorX.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-        logoBreatheAnimatorX.start();
-
-        logoBreatheAnimatorY = ObjectAnimator.ofFloat(logoImage, View.SCALE_Y, 1f, 1.12f);
-        logoBreatheAnimatorY.setDuration(1400);
-        logoBreatheAnimatorY.setStartDelay(700);
-        logoBreatheAnimatorY.setRepeatMode(ValueAnimator.REVERSE);
-        logoBreatheAnimatorY.setRepeatCount(ValueAnimator.INFINITE);
-        logoBreatheAnimatorY.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
-        logoBreatheAnimatorY.start();
-    }
-
-    private void stopLogoFloat() {
-        if (logoFloatAnimator != null) {
-            logoFloatAnimator.cancel();
-            logoFloatAnimator = null;
+        if (statusRing != null) {
+            statusRing.setScaleX(1f);
+            statusRing.setScaleY(1f);
+            statusRing.setAlpha(0f);
         }
-        if (logoBreatheAnimatorX != null) {
-            logoBreatheAnimatorX.cancel();
-            logoBreatheAnimatorX = null;
-        }
-        if (logoBreatheAnimatorY != null) {
-            logoBreatheAnimatorY.cancel();
-            logoBreatheAnimatorY = null;
-        }
-        if (logoImage != null) {
-            logoImage.setTranslationY(0f);
-            logoImage.setScaleX(1f);
-            logoImage.setScaleY(1f);
+        if (statusRingSecondary != null) {
+            statusRingSecondary.setScaleX(1f);
+            statusRingSecondary.setScaleY(1f);
+            statusRingSecondary.setAlpha(0f);
         }
     }
 
-    // ── One-shot logo intro, plays only the first time the activity is created ──
-    private void playLogoIntro(ImageView logo, View content) {
-        if (introPlayed) return;
-        introPlayed = true;
+    private void playEntranceMotion() {
+        if (entrancePlayed || isAnimationDisabled() || rootContent == null) return;
+        entrancePlayed = true;
 
-        logo.setAlpha(0f);
-        logo.setScaleX(0.6f);
-        logo.setScaleY(0.6f);
+        View header = findViewById(R.id.headerContainer);
+        View hero = findViewById(R.id.heroCard);
+        View stats = findViewById(R.id.statsContainer);
+        View help = findViewById(R.id.setupHelpCard);
+        View card1 = findViewById(R.id.cardAutoSkip);
+        View card2 = findViewById(R.id.cardMute);
+        View card3 = findViewById(R.id.cardShield);
+        View footer = findViewById(R.id.footerContainer);
 
-        // content is the same LinearLayout the logo lives in, so hide its
-        // OTHER children individually rather than the container's alpha
-        // (which would double-fade the logo itself). Each child also
-        // starts slightly below its resting position for a soft slide-up,
-        // staggered per child so the screen builds in rather than
-        // appearing all at once.
-        ViewGroup group = (ViewGroup) content;
-        int slideOffsetPx = (int) (24 * getResources().getDisplayMetrics().density);
-        int staggerStep = 90;
-        int delay = 150; // let the logo lead by a beat before the rest follows
+        View[] views = new View[]{header, hero, stats, help, card1, card2, card3, footer};
+        float travelDistance = 24f * getResources().getDisplayMetrics().density;
+        int delay = 0;
 
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View child = group.getChildAt(i);
-            if (child == logo) continue;
-            child.setAlpha(0f);
-            child.setTranslationY(slideOffsetPx);
-        }
-
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(logo, View.ALPHA, 0f, 1f);
-        ObjectAnimator scaleX = ObjectAnimator.ofFloat(logo, View.SCALE_X, 0.6f, 1f);
-        ObjectAnimator scaleY = ObjectAnimator.ofFloat(logo, View.SCALE_Y, 0.6f, 1f);
-
-        AnimatorSet logoIn = new AnimatorSet();
-        logoIn.playTogether(fadeIn, scaleX, scaleY);
-        logoIn.setDuration(650);
-        logoIn.setInterpolator(new OvershootInterpolator(1.4f));
-        logoIn.start();
-
-        for (int i = 0; i < group.getChildCount(); i++) {
-            View child = group.getChildAt(i);
-            if (child == logo) continue;
-            child.animate()
+        for (View v : views) {
+            if (v == null) continue;
+            v.setAlpha(0f);
+            v.setTranslationY(travelDistance);
+            v.animate()
                     .alpha(1f)
                     .translationY(0f)
-                    .setDuration(420)
+                    .setDuration(380)
                     .setStartDelay(delay)
-                    .setInterpolator(new DecelerateInterpolator(1.6f))
+                    .setInterpolator(fastOutSlowIn)
                     .start();
-            delay += staggerStep;
+            delay += 60;
+        }
+    }
+
+    private void updateStatsView(boolean animate) {
+        if (statsTodayNumber == null || statsTotalNumber == null) return;
+
+        int today = prefs.getInt(AdSkipAccessibilityService.KEY_SKIPPED_TODAY, 0);
+        int total = prefs.getInt(AdSkipAccessibilityService.KEY_SKIPPED_TOTAL, 0);
+
+        if (!animate || isAnimationDisabled()) {
+            statsTodayNumber.setText(String.valueOf(today));
+            statsTotalNumber.setText(String.valueOf(total));
+            return;
+        }
+
+        // Count-up over 600ms
+        int currentToday = parseSafeInt(statsTodayNumber.getText().toString());
+        int currentTotal = parseSafeInt(statsTotalNumber.getText().toString());
+
+        ValueAnimator animToday = ValueAnimator.ofInt(currentToday, today);
+        animToday.setDuration(600);
+        animToday.setInterpolator(fastOutSlowIn);
+        animToday.addUpdateListener(anim -> statsTodayNumber.setText(String.valueOf(anim.getAnimatedValue())));
+        animToday.start();
+
+        ValueAnimator animTotal = ValueAnimator.ofInt(currentTotal, total);
+        animTotal.setDuration(600);
+        animTotal.setInterpolator(fastOutSlowIn);
+        animTotal.addUpdateListener(anim -> statsTotalNumber.setText(String.valueOf(anim.getAnimatedValue())));
+        animTotal.start();
+    }
+
+    private int parseSafeInt(String val) {
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 

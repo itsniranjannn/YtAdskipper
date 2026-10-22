@@ -4,82 +4,65 @@ import android.accessibilityservice.AccessibilityButtonController;
 import android.accessibilityservice.AccessibilityService;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
+import java.util.Calendar;
 import java.util.List;
 
 /**
  * AdSkipAccessibilityService
  * --------------------------
- * Watches the YouTube app's screen (and only YouTube's, see
- * accessibility_service_config.xml -> android:packageNames) for a node
- * whose text/content-description matches known "Skip Ad" labels, and
- * performs a click on it. It also mutes device media volume for as long
- * as ad-related UI is on screen, and restores it afterwards.
- *
- * This does NOT:
- *  - read or modify YouTube's app code
- *  - intercept or modify network traffic
- *  - remove/block ads that have no skip button (unskippable ads)
- *  - collect or transmit any data off-device
- *
- * It only automates something a human could already do by tapping the
- * screen (or the volume buttons) themselves, once the button becomes
- * visible.
+ * Core background accessibility engine for Adieu.
+ * Watches the YouTube app's screen for ad signals: taps "Skip ad", mutes
+ * media audio during promotion intervals, and overlays an opaque touch-through
+ * shield over unskippable ads.
  */
 @SuppressLint("AccessibilityPolicy")
 public class AdSkipAccessibilityService extends AccessibilityService {
 
     private static final String TAG = "AdSkipService";
 
-    // YouTube changes exact wording/casing across versions & languages,
-    // so we match on several known variants rather than one exact string.
+    // YouTube View IDs to check first (skip click and ad presence)
+    private static final String[] SKIP_VIEW_IDS = {
+            "com.google.android.youtube:id/skip_ad_button",
+            "com.google.android.youtube:id/skip_ad_button_container"
+    };
+
+    // Text labels: findAccessibilityNodeInfosByText is a case-insensitive substring match.
+    // Skip labels: strictly "Skip ad"
     private static final String[] SKIP_LABELS = {
-            "Skip Ad",
-            "Skip ad",
-            "Skip Ads",
-            "Skip ads",
-            "skip"
+            "Skip ad"
     };
 
-    // Broader set used only to decide "an ad is currently on screen", for
-    // muting — covers the pre-skip countdown window too, not just the
-    // moment the Skip button itself appears. Best-effort: YouTube's exact
-    // ad-badge wording varies by version/region, so this may miss some
-    // unskippable ads or occasionally mute a beat early/late.
+    // Ad-presence labels: strictly "Skip ad" and "Visit advertiser"
     private static final String[] AD_PRESENCE_LABELS = {
-            "Skip Ad",
             "Skip ad",
-            "Skip Ads",
-            "Skip ads",
-            "skip",
-            "Visit advertiser",
-            "Ad ·",
-            "Sponsored"
+            "Visit advertiser"
     };
 
-    // Debounce: the view tree fires TYPE_WINDOW_CONTENT_CHANGED repeatedly
-    // during the skip-button's own tap/dismiss animation (multiple layout
-    // passes in <500ms), so without this the same click gets attempted
-    // 5-8 times in a row. We remember when we last successfully clicked
-    // and ignore further attempts for a short cooldown window.
+    // Throttles & cooldowns
     private static final long CLICK_COOLDOWN_MS = 800;
     private long lastClickTimeMs = 0L;
 
-    // YouTube fires TYPE_WINDOW_CONTENT_CHANGED very frequently during
-    // normal playback (progress ticks, view updates) even when nothing
-    // ad-related is happening. Without a floor on how often we actually do
-    // a tree scan, every one of those events triggers up to ~13 full-tree
-    // text searches (8 ad-presence labels + 5 skip labels), which is heavy
-    // enough on system_server's accessibility dispatch to be felt as
-    // system-wide lag, not just app-local slowness. This throttle caps how
-    // often we scan at all; a 200ms floor still catches a skip button well
-    // within a human-perceptible window.
     private static final long SCAN_THROTTLE_MS = 200;
     private long lastScanTimeMs = 0L;
 
@@ -87,20 +70,32 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     private boolean mutedByUs = false;
     private int savedVolume = -1;
 
-    // Persisted so MainActivity can read/observe the same value. The
-    // accessibility button below can't truly enable/disable the service
-    // (Android only allows a service to self-disable, never self-enable —
-    // that permission must be granted by the user in Settings), so this is
-    // a lighter-weight pause: skip-clicking and muting are suspended, but
-    // the service itself stays registered.
+    // Public Preference Constants
     public static final String PREFS_NAME = "ad_skipper_prefs";
     public static final String KEY_PAUSED = "paused";
+    public static final String KEY_SKIP_ENABLED = "skip_enabled";
+    public static final String KEY_MUTE_ENABLED = "mute_enabled";
+    public static final String KEY_SHIELD_ENABLED = "shield_enabled";
 
-    // The accessibility-button callback moved off AccessibilityService and
-    // onto a separate AccessibilityButtonController object (API 30+), so we
-    // register a callback on it instead of overriding a method. Guarded for
-    // API 30+ since minSdk is 24 — on older devices the button feature is
-    // simply unavailable and the service runs without it.
+    // Stretch: Counter keys
+    public static final String KEY_SKIPPED_TODAY = "skipped_today";
+    public static final String KEY_SKIPPED_TOTAL = "skipped_total";
+    public static final String KEY_SKIPPED_DAY_EPOCH = "skipped_day_epoch";
+
+    // Shield overlay
+    private WindowManager windowManager;
+    private FrameLayout shieldView;
+    private boolean isShieldShowing = false;
+    private int consecutiveScansNoAd = 0;
+
+    // Watchdog handler for 4-second ad absence
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private static final long WATCHDOG_DELAY_MS = 4000L;
+    private final Runnable shieldWatchdogRunnable = () -> {
+        Log.d(TAG, "Shield watchdog timeout reached (4s no ad signal), hiding shield");
+        hideShield();
+    };
+
     private AccessibilityButtonController.AccessibilityButtonCallback accessibilityButtonCallback;
 
     @Override
@@ -115,35 +110,73 @@ public class AdSkipAccessibilityService extends AccessibilityService {
 
         try {
             if (isPaused()) {
-                restoreVolume(); // don't leave audio muted while paused
+                restoreVolume();
+                hideShield();
                 return;
             }
 
             long now = SystemClock.elapsedRealtime();
             if (now - lastScanTimeMs < SCAN_THROTTLE_MS) {
-                return; // too soon since the last full-tree scan, skip this burst of events
+                return;
             }
             lastScanTimeMs = now;
 
-            // Mute tracking runs on every throttled scan, independent of the
-            // click cooldown below — otherwise volume would stay muted/
-            // unmuted stale during the click cooldown window.
-            updateMuteState(isAdCurrentlyShowing(root));
+            // Read preferences to gate features independently
+            SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            boolean skipEnabled = prefs.getBoolean(KEY_SKIP_ENABLED, true);
+            boolean muteEnabled = prefs.getBoolean(KEY_MUTE_ENABLED, true);
+            boolean shieldEnabled = prefs.getBoolean(KEY_SHIELD_ENABLED, true);
 
-            if (now - lastClickTimeMs < CLICK_COOLDOWN_MS) {
-                return; // still inside cooldown from the last successful click
+            boolean adShowing = isAdCurrentlyShowing(root);
+
+            if (adShowing) {
+                consecutiveScansNoAd = 0;
+                mainHandler.removeCallbacks(shieldWatchdogRunnable);
+                mainHandler.postDelayed(shieldWatchdogRunnable, WATCHDOG_DELAY_MS);
+
+                if (shieldEnabled) {
+                    showOrUpdateShield();
+                } else {
+                    hideShield();
+                }
+            } else {
+                consecutiveScansNoAd++;
+                if (consecutiveScansNoAd >= 2) {
+                    hideShield();
+                }
             }
-            findAndClickSkipButton(root, now);
+
+            // Mute logic
+            if (muteEnabled) {
+                updateMuteState(adShowing);
+            } else {
+                restoreVolume();
+            }
+
+            // Skip logic
+            if (skipEnabled) {
+                if (now - lastClickTimeMs >= CLICK_COOLDOWN_MS) {
+                    findAndClickSkipButton(root, now);
+                }
+            }
         } finally {
             root.recycle();
         }
     }
 
-    /**
-     * Returns true if any ad-presence indicator (skip button, pre-skip
-     * countdown badge, "Visit advertiser", etc.) is currently on screen.
-     */
     private boolean isAdCurrentlyShowing(AccessibilityNodeInfo root) {
+        if (root == null) return false;
+
+        for (String id : SKIP_VIEW_IDS) {
+            List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByViewId(id);
+            if (nodes != null && !nodes.isEmpty()) {
+                for (AccessibilityNodeInfo n : nodes) {
+                    if (n != null) n.recycle();
+                }
+                return true;
+            }
+        }
+
         for (String label : AD_PRESENCE_LABELS) {
             List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText(label);
             if (matches == null) continue;
@@ -156,15 +189,104 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         return false;
     }
 
-    /**
-     * Mutes the device's media volume while an ad is showing and restores
-     * the user's previous volume once it's gone (skipped or ended).
-     *
-     * Note: this mutes the whole media stream, not just YouTube — Android
-     * doesn't allow a normal accessibility service to scope volume changes
-     * to a single app's audio session. It's restored the moment the ad
-     * indicator disappears.
-     */
+    private void findAndClickSkipButton(AccessibilityNodeInfo root, long eventTimeMs) {
+        if (root == null) return;
+
+        // 1. Try View IDs first
+        for (String id : SKIP_VIEW_IDS) {
+            List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByViewId(id);
+            if (nodes == null || nodes.isEmpty()) continue;
+
+            for (AccessibilityNodeInfo node : nodes) {
+                AccessibilityNodeInfo clickable = findClickableSelfOrParent(node);
+                if (clickable != null) {
+                    boolean success = clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    if (success) {
+                        Log.d(TAG, "Skip clicked via view id " + id);
+                        lastClickTimeMs = eventTimeMs;
+                        incrementSkipCounters();
+                        recycleNodeList(nodes);
+                        return;
+                    }
+                }
+            }
+            recycleNodeList(nodes);
+        }
+
+        // 2. Fall back to text labels ("Skip ad")
+        for (String label : SKIP_LABELS) {
+            List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText(label);
+            if (matches == null || matches.isEmpty()) continue;
+
+            for (AccessibilityNodeInfo match : matches) {
+                AccessibilityNodeInfo clickable = findClickableSelfOrParent(match);
+                if (clickable != null) {
+                    boolean success = clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                    Log.d(TAG, "Attempted skip click via text '" + label + "', success=" + success);
+                    if (success) {
+                        lastClickTimeMs = eventTimeMs;
+                        incrementSkipCounters();
+                        recycleNodeList(matches);
+                        return;
+                    }
+                }
+            }
+            recycleNodeList(matches);
+        }
+    }
+
+    private void incrementSkipCounters() {
+        SharedPreferences sp = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        long todayEpoch = getStartOfDayEpoch();
+        long storedEpoch = sp.getLong(KEY_SKIPPED_DAY_EPOCH, 0L);
+
+        int todayCount = sp.getInt(KEY_SKIPPED_TODAY, 0);
+        int totalCount = sp.getInt(KEY_SKIPPED_TOTAL, 0);
+
+        if (todayEpoch != storedEpoch) {
+            todayCount = 1;
+        } else {
+            todayCount++;
+        }
+        totalCount++;
+
+        sp.edit()
+                .putLong(KEY_SKIPPED_DAY_EPOCH, todayEpoch)
+                .putInt(KEY_SKIPPED_TODAY, todayCount)
+                .putInt(KEY_SKIPPED_TOTAL, totalCount)
+                .apply();
+        Log.d(TAG, "Incremented skip stats: today=" + todayCount + ", total=" + totalCount);
+    }
+
+    private long getStartOfDayEpoch() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
+    }
+
+    private void recycleNodeList(List<AccessibilityNodeInfo> list) {
+        if (list == null) return;
+        for (AccessibilityNodeInfo info : list) {
+            if (info != null) info.recycle();
+        }
+    }
+
+    private AccessibilityNodeInfo findClickableSelfOrParent(AccessibilityNodeInfo node) {
+        AccessibilityNodeInfo current = node;
+        int depth = 0;
+        while (current != null && depth < 6) {
+            if (current.isClickable()) {
+                return current;
+            }
+            current = current.getParent();
+            depth++;
+        }
+        return null;
+    }
+
     private void updateMuteState(boolean adShowing) {
         if (audioManager == null) return;
 
@@ -187,72 +309,106 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         savedVolume = -1;
     }
 
-    /**
-     * Recursively searches the current view-tree for a node that looks
-     * like a skip button, then performs ACTION_CLICK on it (or its
-     * clickable parent, since the text node itself often isn't the
-     * clickable target). Stops after the first successful click this
-     * pass, since one click is all a single ad ever needs.
-     */
-    private void findAndClickSkipButton(AccessibilityNodeInfo node, long eventTimeMs) {
-        if (node == null) return;
+    // ── SHIELD OVERLAY IMPLEMENTATION ──────────────────────────────────────────
 
-        for (String label : SKIP_LABELS) {
-            List<AccessibilityNodeInfo> matches =
-                    node.findAccessibilityNodeInfosByText(label);
+    private void showOrUpdateShield() {
+        if (windowManager == null) {
+            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        }
+        if (windowManager == null) return;
 
-            if (matches == null) continue;
+        WindowManager.LayoutParams lp = createShieldLayoutParams();
 
-            boolean clicked = false;
-            for (AccessibilityNodeInfo match : matches) {
-                if (clicked) {
-                    match.recycle();
-                    continue;
+        try {
+            if (!isShieldShowing || shieldView == null) {
+                if (shieldView == null) {
+                    shieldView = createShieldView();
                 }
-                AccessibilityNodeInfo clickable = findClickableSelfOrParent(match);
-                if (clickable == null) {
-                    match.recycle();
-                    continue;
-                }
-
-                boolean success = clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                Log.d(TAG, "Attempted skip click, success=" + success);
-
-                if (success) {
-                    lastClickTimeMs = eventTimeMs;
-                    clicked = true;
-                }
-                match.recycle();
+                windowManager.addView(shieldView, lp);
+                isShieldShowing = true;
+                Log.d(TAG, "Shield view added");
+            } else {
+                windowManager.updateViewLayout(shieldView, lp);
             }
-            if (clicked) return; // done for this pass, cooldown handles the rest
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Error adding or updating shield view", e);
         }
     }
 
-    /**
-     * findAccessibilityNodeInfosByText() often returns the TextView
-     * showing "Skip Ad", but the actual clickable target is one of its
-     * ancestors (a Button/FrameLayout wrapping it). Walk up until we
-     * find something clickable.
-     */
-    private AccessibilityNodeInfo findClickableSelfOrParent(AccessibilityNodeInfo node) {
-        AccessibilityNodeInfo current = node;
-        int depth = 0;
-        while (current != null && depth < 6) {
-            if (current.isClickable()) {
-                return current;
+    private void hideShield() {
+        mainHandler.removeCallbacks(shieldWatchdogRunnable);
+        consecutiveScansNoAd = 0;
+        if (isShieldShowing && shieldView != null && windowManager != null) {
+            try {
+                windowManager.removeView(shieldView);
+                Log.d(TAG, "Shield view removed");
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Error removing shield view", e);
             }
-            current = current.getParent();
-            depth++;
         }
-        return null;
+        isShieldShowing = false;
     }
 
-    /**
-     * Registers a callback with the system's AccessibilityButtonController
-     * so tapping the floating accessibility button flips the pause flag.
-     * Only available on API 30+; on older API levels this is a no-op and
-     * the service still works fine minus that one button.
-     */
+    private FrameLayout createShieldView() {
+        FrameLayout layout = new FrameLayout(this);
+        // Fill #0E0206 (dark branded blackout, fully opaque)
+        layout.setBackgroundColor(Color.parseColor("#0E0206"));
+        layout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+
+        TextView label = new TextView(this);
+        label.setText("ADIEU");
+        // Sand 400 (#CDBF9F)
+        label.setTextColor(Color.parseColor("#CDBF9F"));
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        label.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        label.setLetterSpacing(0.14f);
+        label.setIncludeFontPadding(false);
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        lp.gravity = Gravity.CENTER;
+        layout.addView(label, lp);
+
+        return layout;
+    }
+
+    private WindowManager.LayoutParams createShieldLayoutParams() {
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+        int orientation = getResources().getConfiguration().orientation;
+
+        int height;
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            height = WindowManager.LayoutParams.MATCH_PARENT;
+        } else {
+            int statusBarHeight = getStatusBarHeight();
+            height = statusBarHeight + (int) (dm.widthPixels * 9f / 16f);
+        }
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        lp.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        lp.format = PixelFormat.OPAQUE;
+        lp.gravity = Gravity.TOP | Gravity.START;
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = height;
+
+        return lp;
+    }
+
+    private int getStatusBarHeight() {
+        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
+        if (resourceId > 0) {
+            return getResources().getDimensionPixelSize(resourceId);
+        }
+        return (int) (24 * getResources().getDisplayMetrics().density);
+    }
+
+    // ── ACCESSIBILITY BUTTON CALLBACK & LIFECYCLE ──────────────────────────────
+
     private void registerAccessibilityButtonCallback() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             Log.d(TAG, "Accessibility button controller requires API 30+, skipping on this device");
@@ -269,7 +425,8 @@ public class AdSkipAccessibilityService extends AccessibilityService {
                         .apply();
 
                 if (nowPaused) {
-                    restoreVolume(); // don't leave audio muted while paused
+                    restoreVolume();
+                    hideShield();
                 }
                 Log.d(TAG, "Accessibility button tapped, paused=" + nowPaused);
             }
@@ -299,13 +456,15 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     @Override
     public void onInterrupt() {
         Log.d(TAG, "Accessibility service interrupted");
-        restoreVolume(); // never leave the device stuck muted
+        restoreVolume();
+        hideShield();
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         registerAccessibilityButtonCallback();
         Log.d(TAG, "AdSkipAccessibilityService connected");
     }
@@ -314,6 +473,7 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     public void onDestroy() {
         super.onDestroy();
         unregisterAccessibilityButtonCallback();
-        restoreVolume(); // service turned off (or app killed) mid-ad — don't leave it muted
+        restoreVolume();
+        hideShield();
     }
 }
