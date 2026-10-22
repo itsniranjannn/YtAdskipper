@@ -1,14 +1,20 @@
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_pressed="true">
-        <shape android:shape="rectangle">
-            <solid android:color="@color/accent_dim" />
-            <corners android:radius="16dp" />
-        </shape>
-    </item>
+<?xml version="1.0" encoding="utf-8"?>
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/sand_24">
     <item>
-        <shape android:shape="rectangle">
-            <solid android:color="@color/accent" />
-            <corners android:radius="16dp" />
-        </shape>
+        <selector>
+            <item android:state_pressed="true">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/sand_400" />
+                    <corners android:radius="16dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/brand_sand" />
+                    <corners android:radius="16dp" />
+                </shape>
+            </item>
+        </selector>
     </item>
-</selector>
+</ripple>

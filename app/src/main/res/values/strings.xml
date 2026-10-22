@@ -1,9 +1,48 @@
 <resources>
-    <string name="app_name">Ad Skipper YT</string>
-    <string name="accessibility_service_label">Ad Skipper YT Service</string>
-    <string name="accessibility_service_description">
-        Detects the "Skip Ad" button inside the YouTube app and taps it
-        automatically. Only monitors the YouTube app\'s screen content —
-        no other apps, no personal data, no network access.
-    </string>
+    <string name="app_name">Adieu</string>
+    <string name="tagline">Ads, dismissed.</string>
+    <string name="accessibility_service_label">Adieu Service</string>
+    <string name="accessibility_service_description">Watches only the YouTube app\'s screen, taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a black touch-through panel over unskippable ads. Each feature can be switched off in the app. Uses no network access.</string>
+
+    <!-- UI Labels & Sections -->
+    <string name="label_service">SERVICE</string>
+    <string name="label_configuration">CONFIGURATION</string>
+    <string name="label_restricted_help">SETUP HELP</string>
+    <string name="stats_today_label">SKIPPED TODAY</string>
+    <string name="stats_all_time_label">ALL TIME</string>
+
+    <!-- State Words -->
+    <string name="status_offline">OFFLINE</string>
+    <string name="status_not_enabled">OFFLINE</string>
+    <string name="status_paused">PAUSED</string>
+    <string name="status_active">ACTIVE</string>
+
+    <!-- State Descriptions -->
+    <string name="status_desc_offline">Accessibility engine disabled. Grant system access to begin monitoring.</string>
+    <string name="status_desc_not_enabled">Accessibility engine disabled. Grant system access to begin monitoring.</string>
+    <string name="status_desc_paused">Monitoring suspended via system shortcut. Tap shortcut to resume.</string>
+    <string name="status_desc_active">Active on YouTube. Dismissing ad interruptions automatically.</string>
+
+    <!-- Action Buttons -->
+    <string name="action_open_settings">Open accessibility settings</string>
+    <string name="action_open_app_info">Open App info</string>
+
+    <!-- Setup Help Card (Android 13+ Restricted Settings) -->
+    <string name="help_title">Android 13+ Restricted Setting Notice</string>
+    <string name="help_step_1">1. Tap \"Open App info\" below.</string>
+    <string name="help_step_2">2. Tap the three dots (top right) and choose \"Allow restricted settings\".</string>
+    <string name="help_step_3">3. Return here and tap \"Open accessibility settings\" to activate.</string>
+
+    <!-- Switches -->
+    <string name="switch_auto_skip">Auto-skip</string>
+    <string name="switch_auto_skip_desc">Taps the Skip button instantly when available.</string>
+
+    <string name="switch_mute_ads">Mute ads</string>
+    <string name="switch_mute_ads_desc">Silences media audio during promotional segments.</string>
+
+    <string name="switch_shield_ads">Hide unskippable ads</string>
+    <string name="switch_shield_ads_desc">Covers unskippable ad frames with a touch-through blackout shield.</string>
+
+    <!-- Footer -->
+    <string name="footer_notice">Reads only the YouTube screen. No network.</string>
 </resources>

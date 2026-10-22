@@ -1,138 +1,501 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_root_gradient">
+    android:background="@color/wine_900"
+    android:fillViewport="true"
+    android:fitsSystemWindows="true">
 
     <LinearLayout
         android:id="@+id/rootContent"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
-        android:padding="28dp">
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="40dp">
 
-        <!-- Logo -->
-        <ImageView
-            android:id="@+id/logoImage"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:src="@drawable/ic_app_logo"
-            android:layout_marginBottom="20dp"
-            android:contentDescription="@string/app_name" />
-
-        <!-- Title -->
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/app_name"
-            android:textColor="@color/text_primary"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="6dp" />
-
-        <!-- Subtitle -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Skips YouTube ads automatically, on-device"
-            android:textColor="@color/text_secondary"
-            android:textSize="13sp"
-            android:layout_marginBottom="28dp" />
-
-        <!-- Status Card -->
+        <!-- 1. HEADER: Logo Tile (40dp wine 12dp radius) + Wordmark + Tagline -->
         <LinearLayout
+            android:id="@+id/headerContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:padding="24dp"
-            android:layout_marginBottom="24dp">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_tile_active">
+
+                <ImageView
+                    android:id="@+id/logoImage"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_app_logo" />
+            </FrameLayout>
 
             <LinearLayout
-                android:id="@+id/statusPill"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/bg_status_pill"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="8dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="14dp">
-
-                <FrameLayout
-                    android:layout_width="9dp"
-                    android:layout_height="9dp"
-                    android:layout_marginEnd="8dp">
-
-                    <View
-                        android:id="@+id/statusRing"
-                        android:layout_width="9dp"
-                        android:layout_height="9dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/dot_active"
-                        android:alpha="0" />
-
-                    <View
-                        android:id="@+id/statusDot"
-                        android:layout_width="9dp"
-                        android:layout_height="9dp"
-                        android:layout_gravity="center"
-                        android:background="@drawable/dot_inactive" />
-                </FrameLayout>
+                android:layout_marginStart="16dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/statusLabel"
+                    android:id="@+id/titleText"
+                    style="@style/TextAppearance.Adieu.Wordmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="NOT ENABLED"
-                    android:textColor="@color/text_primary"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:letterSpacing="0.08" />
-            </LinearLayout>
+                    android:text="adieu" />
 
-            <TextView
-                android:id="@+id/statusText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Checking status..."
-                android:textAlignment="center"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp"
-                android:lineSpacingExtra="3dp" />
+                <TextView
+                    style="@style/TextAppearance.Adieu.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/tagline" />
+            </LinearLayout>
         </LinearLayout>
 
-        <!-- Enable button -->
-        <Button
-            android:id="@+id/enableButton"
+        <!-- 2. HERO STATUS PANEL (Wine fill #7F011F, 28dp radius, 24dp padding) -->
+        <FrameLayout
+            android:id="@+id/heroCard"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Open Accessibility Settings"
-            android:textAllCaps="false"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:textSize="15sp"
-            android:background="@drawable/bg_button"
-            android:elevation="0dp"
-            android:stateListAnimator="@animator/button_press" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_hero_card">
+
+            <!-- Decorative Concentric Ring Arcs at 12% sand opacity -->
+            <ImageView
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_gravity="end|bottom"
+                android:contentDescription="@null"
+                android:src="@drawable/bg_hero_arcs" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Label Row with Status Dot & Ring -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Concentric Expanding Ring Area (16dp base, expands up to 2.6x) -->
+                    <FrameLayout
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="10dp"
+                        android:clipChildren="false">
+
+                        <!-- Primary pulse ring -->
+                        <View
+                            android:id="@+id/statusRing"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_gravity="center"
+                            android:alpha="0"
+                            android:background="@drawable/dot_active" />
+
+                        <!-- Secondary offset pulse ring -->
+                        <View
+                            android:id="@+id/statusRingSecondary"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_gravity="center"
+                            android:alpha="0"
+                            android:background="@drawable/dot_active" />
+
+                        <!-- Central solid status dot -->
+                        <View
+                            android:id="@+id/statusDot"
+                            android:layout_width="10dp"
+                            android:layout_height="10dp"
+                            android:layout_gravity="center"
+                            android:background="@drawable/dot_inactive" />
+                    </FrameLayout>
+
+                    <TextView
+                        android:id="@+id/heroServiceLabel"
+                        style="@style/TextAppearance.Adieu.Label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/label_service"
+                        android:textColor="@color/brand_sand" />
+                </LinearLayout>
+
+                <!-- State Word in Display 44sp sand -->
+                <TextView
+                    android:id="@+id/statusLabel"
+                    style="@style/TextAppearance.Adieu.Display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/status_offline" />
+
+                <!-- One-line explanation in Body -->
+                <TextView
+                    android:id="@+id/statusText"
+                    style="@style/TextAppearance.Adieu.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/status_desc_offline" />
+
+                <!-- Sand Pill Button (enableButton, wine text, 16dp radius, 56dp tall) -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/enableButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="24dp"
+                    android:background="@drawable/bg_button"
+                    android:elevation="0dp"
+                    android:fontFamily="@font/font_inter"
+                    android:stateListAnimator="@animator/button_press"
+                    android:text="@string/action_open_settings"
+                    android:textAllCaps="false"
+                    android:textColor="@color/brand_wine"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- STRETCH: STATS ROW UNDER HERO -->
+        <LinearLayout
+            android:id="@+id/statsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_today_label" />
+
+                <TextView
+                    android:id="@+id/statsTodayNumber"
+                    style="@style/TextAppearance.Adieu.Wordmark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0"
+                    android:textSize="26sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stats_all_time_label" />
+
+                <TextView
+                    android:id="@+id/statsTotalNumber"
+                    style="@style/TextAppearance.Adieu.Wordmark"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="0"
+                    android:textSize="26sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 3. SETUP HELP CARD (Android 13+ Restricted Setting Notice) -->
+        <LinearLayout
+            android:id="@+id/setupHelpCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="visible">
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/label_restricted_help" />
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/help_title"
+                android:textColor="@color/brand_sand"
+                android:textStyle="bold" />
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/help_step_1" />
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/help_step_2" />
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/help_step_3" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/helpAppInfoButton"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_tile_outline"
+                android:elevation="0dp"
+                android:fontFamily="@font/font_inter"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_open_app_info"
+                android:textAllCaps="false"
+                android:textColor="@color/brand_sand"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <!-- 4. CONFIGURATION SECTION -->
+        <TextView
+            style="@style/TextAppearance.Adieu.Label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp"
+            android:text="@string/label_configuration" />
+
+        <!-- Switch Card 1: Auto-skip -->
+        <LinearLayout
+            android:id="@+id/cardAutoSkip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/tileAutoSkip"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_tile_active">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_skip" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/switch_auto_skip"
+                    android:textColor="@color/brand_sand"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/switch_auto_skip_desc" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchAutoSkip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Switch Card 2: Mute Ads -->
+        <LinearLayout
+            android:id="@+id/cardMute"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/tileMute"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_tile_active">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_volume_off" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/switch_mute_ads"
+                    android:textColor="@color/brand_sand"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/switch_mute_ads_desc" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchMute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Switch Card 3: Hide unskippable ads -->
+        <LinearLayout
+            android:id="@+id/cardShield"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/tileShield"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_tile_active">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_shield" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/switch_shield_ads"
+                    android:textColor="@color/brand_sand"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextAppearance.Adieu.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/switch_shield_ads_desc" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchShield"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- 5. FOOTER: Version name & Security Notice -->
+        <LinearLayout
+            android:id="@+id/footerContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/footerVersionText"
+                style="@style/TextAppearance.Adieu.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Adieu v1.1"
+                android:textColor="@color/sand_400" />
+
+            <TextView
+                style="@style/TextAppearance.Adieu.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/footer_notice"
+                android:textColor="@color/sand_400" />
+        </LinearLayout>
 
     </LinearLayout>
-
-    <!-- Footer -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_marginBottom="32dp"
-        android:text="Built by Niranjan.K"
-        android:textColor="@color/text_secondary"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.02"
-        android:textAlignment="center" />
-
-</FrameLayout>
+</androidx.core.widget.NestedScrollView>
