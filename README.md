@@ -1,159 +1,53 @@
-<div align="center">
+# Adieu
+> *Ads, dismissed.*
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=6C5CE7&height=180&section=header&text=Ad%20Skipper%20YT&fontSize=50&fontColor=ffffff&animation=fadeIn&fontAlignY=35" />
+[![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](https://android.com)
+[![Language](https://img.shields.io/badge/language-Java-007396?logo=java&logoColor=white)](https://oracle.com/java)
+[![Min SDK](https://img.shields.io/badge/minSdk-24-blue)](https://android.com)
+[![Target SDK](https://img.shields.io/badge/targetSdk-36-blue)](https://android.com)
+[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![Network Access](https://img.shields.io/badge/network%20access-none-success)](README.md)
 
-<a href="https://github.com">
-  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&pause=1000&color=9AA0AE&center=true&vCenter=true&width=600&lines=Skips+YouTube+ads+automatically%2C+on-device;No+root.+No+APK+mods.+No+network+interception.;Detects+the+native+Skip+Ad+button+and+taps+it." alt="Typing SVG" />
-</a>
-
-![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)
-![Language](https://img.shields.io/badge/language-Java-007396?logo=java&logoColor=white)
-![Min SDK](https://img.shields.io/badge/minSdk-24-blue)
-![License](https://img.shields.io/badge/license-MIT-lightgrey)
-![No Network](https://img.shields.io/badge/network%20access-none-success)
-
-</div>
+An Android accessibility engine designed to tap YouTube's "Skip ad" button, mute media audio during promotion intervals, and draw an opaque touch-through blackout shield over unskippable ads. No root, no patched APKs, no network proxies, and zero background analytics.
 
 ---
 
-<div align="center">
+## Brand & Colour Palette
 
-### 📺 See it in action
+Adieu features a custom dark palette built on warm wine surfaces and sand typography.
 
-<!--
-  Drop a screen recording here as ad_skipper_demo.gif in your repo root.
-  Quick way to record on the emulator:
-    Extended Controls (⋮) → Record and Playback → Start recording
-  Then convert the .webm/.mp4 to a .gif (ezgif.com, or `ffmpeg -i in.mp4 -vf "fps=12,scale=320:-1" demo.gif`)
--->
-![Ad Skipper YT demo](ad_skipper_demo.gif)
-
-*Tap the accessibility button to pause/resume anytime — no need to dig back into Settings.*
-
-</div>
-
----
-
-## 📱 Screenshots
-
-| Home screen                              | Enabled state                                 |
-|------------------------------------------|-----------------------------------------------|
-| ![Home screen](home.png) | ![Enabled state](enabled.png) |
+| Token | Hex | Role | Contrast Ratio |
+| :--- | :--- | :--- | :--- |
+| **Brand wine** | `#7F011F` | Hero panels, active switch tracks, icon tiles | — |
+| **Brand sand** | `#F5EBD0` | Primary text, primary button fill, logo glyph | **11.8:1** (on Wine 800) / **15.6:1** (on Wine 900) |
+| **Wine 900** | `#14030A` | Page root canvas | — |
+| **Wine 800** | `#240612` | Card surfaces & switch containers | — |
+| **Wine 600** | `#A3052B` | Pressed states, ring highlights | — |
+| **Hairline** | `#4A1424` | 1dp dividers and card outlines | — |
+| **Sand 400** | `#CDBF9F` | Secondary descriptions, captions | **8.1:1** (on Wine 800) / **10.7:1** (on Wine 900) |
+| **ACTIVE** | `#7BD88F` | Active state word, pulsing rings | **9.5:1** (on Wine 800) / **12.6:1** (on Wine 900) |
+| **PAUSED** | `#F2B84B` | Paused state word, amber indicator | **9.8:1** (on Wine 800) / **13.0:1** (on Wine 900) |
+| **OFFLINE** | `#FF7A6B` | Offline status word, red indicator | **6.4:1** (on Wine 800) / **8.5:1** (on Wine 900) |
 
 ---
 
-## ⚙️ How it works
+## Features
 
-1. An `AccessibilityService` watches **only** the YouTube app's screen — scoped via `android:packageNames` in the service config, so no other app is ever touched.
-2. When the view tree changes, it scans (throttled, so it's light on the device) for a node matching known "Skip Ad" label variants.
-3. It walks up to the nearest clickable ancestor — the text node itself usually isn't the tappable target — and performs `ACTION_CLICK`.
-4. Media volume is muted the moment ad-related UI appears (including the pre-skip countdown), and restored the instant it's gone — so the mute always lands **before** the click, not after.
-5. A cooldown after each successful click prevents duplicate taps during the button's own dismiss animation.
-
-No network traffic is read or modified. No data ever leaves the device.
-
----
-
-## ✨ Features
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-**Core**
-- 🎯 One-tap setup — deep links straight to Android's Accessibility Settings
-- 🔇 Auto-mute before skip, auto-restore after
-- ⏱️ Debounced click + scan logic — smooth, no system-wide lag
-- 🧵 No network access, no data collection, ever
-
-</td>
-<td width="50%" valign="top">
-
-**Interface**
-- 🟢 Live three-state status: **Not Enabled → Active → Paused**
-- ⏸️ Pause/resume anytime via the system Accessibility Button — no Settings round-trip needed
-- 🌊 Animated entrance (staggered slide + fade), breathing logo, color-crossfading status pill
-- 🌑 Dark, minimal UI throughout
-
-</td>
-</tr>
-</table>
+- **Auto-skip**: Discovers `com.google.android.youtube:id/skip_ad_button` or "Skip ad" labels and dispatches clicks within 200ms.
+- **Media Mute**: Attenuates device media audio during advertisement segments and restores previous volume upon completion.
+- **Touch-Through Ad Shield**: Overlays an opaque blackout window (`#0E0206`) over player bounds for unskippable ads (`TYPE_ACCESSIBILITY_OVERLAY`, pass-through taps).
+- **Independent Control Gating**: Each feature is independently toggleable via SharedPreferences (`skip_enabled`, `mute_enabled`, `shield_enabled`).
+- **Live State Observation**: Automatically transitions between **ACTIVE**, **PAUSED**, and **OFFLINE** via `ContentObserver` and system shortcut callbacks without polling.
+- **Android 13+ Setup Help**: Built-in guidance for sideloaded apps to enable "Restricted settings" seamlessly.
+- **Skip Metrics Counter**: Tracks ads dismissed today and all-time with count-up animations.
+- **Strictly Local**: Scoped exclusively to `com.google.android.youtube`. No internet permissions requested in `AndroidManifest.xml`.
 
 ---
 
-## 🛠️ Tech stack
+## Setup & Installation
 
-- Java
-- Android `AccessibilityService` API
-- Android Studio / Gradle
-
----
-
-## 🚀 Setup
-
-1. Clone the repo
-2. Open in Android Studio
-3. Run on a device or emulator with the **Play Store image** (needed for real YouTube)
-4. Open the app → tap **Open Accessibility Settings** → enable **Ad Skipper YT Service**
-5. Open YouTube and play any video with a skippable ad
-
-<details>
-<summary><strong>⚠️ Android 13+ note — toggle greyed out?</strong></summary>
-
-<br>
-
-Sideloaded apps are hidden behind Android's "restricted settings" protection by default. Fix it once:
-
-**Settings → Apps → Ad Skipper YT → ⋮ (3-dot menu) → Allow restricted settings**
-
-Then go back into Accessibility settings and the toggle will work.
-
-</details>
-
-<details>
-<summary><strong>⏸️ Using the pause/resume shortcut</strong></summary>
-
-<br>
-
-Once the service is enabled, Android shows a floating **Accessibility Button** on screen. Tap it:
-- **1st tap** → pauses (skip-clicking and muting stop, status turns amber)
-- **2nd tap** → resumes (back to green/active)
-
-It keeps toggling on every tap. If the button doesn't appear, check that the "shortcut" option is switched on inside the service's own Settings page — it's the same page reached via "Open Accessibility Settings."
-
-</details>
-
----
-
-## 🧱 Limitations
-
-- Only works on ads with a visible skip button — cannot remove unskippable ads
-- Relies on matching the button's text label, so a YouTube UI change could require an update
-- Mutes the whole media stream while an ad shows, not just YouTube's audio — Android doesn't allow an accessibility service to scope volume to a single app's session
-- Not distributed via Play Store; using it may be inconsistent with YouTube's Terms of Service, even though the technique itself only uses Android's public Accessibility API
-- iOS is not supported and can't be — this whole approach depends on Android's `AccessibilityService`, which has no iOS equivalent
-
----
-
-## 🔒 Privacy & security
-
-- Scoped to `com.google.android.youtube` only — no other app's screen is ever read
-- Zero network permissions in the manifest — not just a promise, enforced by the OS
-- Pause state stored locally in private `SharedPreferences` — never transmitted anywhere
-- Service is protected by `BIND_ACCESSIBILITY_SERVICE`, so no other app can bind to or impersonate it
-
----
-
-## 📄 License
-
-MIT — do whatever you want with it, just don't blame me if YouTube changes its UI and it stops working.
-
-<div align="center">
-
----
-
-### Built by **Niranjan.K**
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=6C5CE7&height=100&section=footer&animation=fadeIn" />
-
-</div>
+1. Build or install `app-release.apk` / `app-debug.apk`.
+2. Launch **Adieu**.
+3. Tap **Open accessibility settings** and turn on **Adieu Service**.
+4. *(Android 13+ only)* If restricted, tap **Open App info** in the setup card, tap the three dots (top right), choose **Allow restricted settings**, then enable the service.
+5. Open YouTube and play media normally.
