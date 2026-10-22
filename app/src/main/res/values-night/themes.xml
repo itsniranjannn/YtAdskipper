@@ -1,7 +1,22 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.YoutubeAdskip" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Theme.AdSkipperYT" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_sand</item>
+        <item name="colorPrimaryVariant">@color/sand_400</item>
+        <item name="colorOnPrimary">@color/brand_wine</item>
+        <item name="colorSecondary">@color/brand_sand</item>
+        <item name="colorOnSecondary">@color/brand_wine</item>
+        <item name="colorSurface">@color/wine_800</item>
+        <item name="colorOnSurface">@color/brand_sand</item>
+        <item name="android:colorBackground">@color/wine_900</item>
+        <item name="colorOnBackground">@color/brand_sand</item>
+
+        <item name="android:windowBackground">@color/wine_900</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
+
+        <item name="fontFamily">@font/font_inter</item>
+        <item name="switchStyle">@style/Widget.Adieu.Switch</item>
     </style>
 </resources>

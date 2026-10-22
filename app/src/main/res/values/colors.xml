@@ -1,25 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base dark surface tones -->
-    <color name="bg_root">#0B0D12</color>
-    <color name="bg_root_end">#12151D</color>
-    <color name="surface_card">#1A1E28</color>
-    <color name="surface_card_border">#262B38</color>
+    <!-- Brand Wine & Sand Identity -->
+    <color name="brand_wine">#7F011F</color>
+    <color name="brand_sand">#F5EBD0</color>
+    <color name="wine_900">#14030A</color>
+    <color name="wine_800">#240612</color>
+    <color name="wine_600">#A3052B</color>
+    <color name="hairline">#4A1424</color>
+    <color name="sand_400">#CDBF9F</color>
+    <color name="soft_tint">#F4E7F1</color>
 
-    <!-- Accent -->
-    <color name="accent">#6C5CE7</color>
-    <color name="accent_dim">#4B3FB0</color>
+    <!-- Semantic Status Tokens (>= 4.5:1 on wine_800 & wine_900) -->
+    <color name="status_active">#7BD88F</color>
+    <color name="status_paused">#F2B84B</color>
+    <color name="status_inactive">#FF7A6B</color>
 
-    <!-- Status -->
-    <color name="status_active">#2ECC71</color>
-    <color name="status_inactive">#E74C3C</color>
+    <!-- Theme Role Aliases -->
+    <color name="bg_root">@color/wine_900</color>
+    <color name="surface_neutral">@color/wine_800</color>
+    <color name="hairline_divider">@color/hairline</color>
+    <color name="accent">@color/brand_sand</color>
+    <color name="accent_pressed">@color/sand_400</color>
+    <color name="text_primary">@color/brand_sand</color>
+    <color name="text_secondary">@color/sand_400</color>
 
-    <!-- Text -->
-    <color name="text_primary">#F2F3F7</color>
-    <color name="text_secondary">#9AA0AE</color>
-    <color name="text_footer">#5A6070</color>
-
-    <!-- legacy (kept so nothing else in the project breaks) -->
-    <color name="purple_500">#6C5CE7</color>
-    <color name="purple_700">#4B3FB0</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Translucent Overlay / Ring tokens -->
+    <color name="sand_12">#1FF5EBD0</color>
+    <color name="sand_24">#3DF5EBD0</color>
+    <color name="wine_track_off">#1C050E</color>
 </resources>
