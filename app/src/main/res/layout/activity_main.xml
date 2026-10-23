@@ -537,16 +537,18 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- SECTION 2: BLOCK EVERYWHERE -->
+        <!-- SECTION 2: BLOCK EVERYWHERE (Hidden for now, preserved for future release) -->
         <TextView
+            android:id="@+id/sectionTitleBlockEverywhere"
             style="@style/TextAppearance.Hush.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
             android:layout_marginBottom="12dp"
+            android:visibility="gone"
             android:text="@string/label_section_block_everywhere" />
 
-        <!-- FEATURED CARD: Block ads in all apps (Hush DNS VPN) -->
+        <!-- FEATURED CARD: Block ads in all apps (Hush DNS VPN) (Hidden for now, preserved for future release) -->
         <LinearLayout
             android:id="@+id/cardDns"
             android:layout_width="match_parent"
@@ -554,6 +556,7 @@
             android:background="@drawable/bg_card"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:visibility="gone"
             android:padding="20dp">
 
             <FrameLayout
