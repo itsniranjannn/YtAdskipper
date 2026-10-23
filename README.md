@@ -3,11 +3,12 @@
   <img src="https://capsule-render.vercel.app/api?type=waving&color=01004D&height=220&section=header&text=Hush&fontSize=70&fontColor=AF80FA&animation=fadeIn&fontAlignY=38&desc=Ads,%20dismissed.%20A%20minimalist,%20fluid%20Android%20utility.&descAlignY=58&descSize=18&descAlign=50" width="100%" alt="Hush Header"/>
 
   <p align="center">
+    <a href="#how-it-works"><b>How It Works</b></a> •
     <a href="#key-features"><b>Features</b></a> •
     <a href="#visual-identity--motion"><b>Design System</b></a> •
     <a href="#architecture"><b>Architecture</b></a> •
-    <a href="#setup-flow-android-13"><b>Setup Guide</b></a> •
-    <a href="#build--installation"><b>Download APK</b></a>
+    <a href="#setup-guide-android-13"><b>Setup Guide</b></a> •
+    <a href="#installation"><b>Download</b></a>
   </p>
 
   <p align="center">
@@ -24,43 +25,63 @@
 
 ---
 
-## ⚡ What is Hush?
-
-**Hush** is a lightweight, edge-to-edge Android utility crafted for pure peace of mind. Built with Google's Material Components, custom physics-driven spring animations, and strict zero-battery-drain accessibility checks, Hush continuously runs silently on your device to keep your streaming uninterrupted.
-
-> *"Turn the volume down on the noise, and turn up what matters."*
+<div align="center">
+  <table border="0">
+    <tr>
+      <td width="55%" valign="middle">
+        <h2>✨ Experience Silence in Streaming</h2>
+        <p><b>Hush</b> is an edge-to-edge Android utility crafted for seamless media playback. It runs completely on-device using official Android Accessibility APIs to detect promotional segments, mute audio during adverts, and tap skip buttons the millisecond they appear.</p>
+        <p>No account logins. No network tracking. No APK tampering. Just pure uninterrupted streaming.</p>
+        <p>
+          <img src="https://img.shields.io/badge/Battery%20Impact-Near%20Zero-95C34D?style=flat-square" alt="Zero Battery Impact"/>
+          <img src="https://img.shields.io/badge/Internet%20Permission-None-AF80FA?style=flat-square" alt="No Internet Required"/>
+          <img src="https://img.shields.io/badge/Root-Not%20Required-3DDC84?style=flat-square" alt="No Root"/>
+        </p>
+      </td>
+      <td width="45%" align="center" valign="middle">
+        <img src="docs/assets/screenshot_preview.png" width="280" style="border-radius:24px; box-shadow: 0 12px 32px rgba(1, 0, 77, 0.6);" alt="Hush App Preview"/>
+      </td>
+    </tr>
+  </table>
+</div>
 
 ---
 
-## 💎 Visual Identity & Motion
+## 🔍 How It Works
 
-Hush features a tailored, high-contrast dark palette designed to stand out against standard material templates.
+Hush leverages the standard Android Accessibility framework to observe app layout updates without modifying or intercepting app packages:
 
-<div align="center">
-<table>
-  <tr>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/03012A/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Midnight</b><br/><code>#03012A</code><br/><i>Canvas</i></td>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/01004D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Ultramarine</b><br/><code>#01004D</code><br/><i>Cards & Depth</i></td>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/AF80FA/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Violet</b><br/><code>#AF80FA</code><br/><i>Active Hero</i></td>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/F4E7F1/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Blush</b><br/><code>#F4E7F1</code><br/><i>Primary Text</i></td>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/95C34D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Lime</b><br/><code>#95C34D</code><br/><i>Pulse Spark</i></td>
-    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/1A1966/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Hairline</b><br/><code>#1A1966</code><br/><i>Dividers</i></td>
-  </tr>
-</table>
-</div>
+```
+                      ┌─────────────────────────────────┐
+                      │   User Watching YouTube Video   │
+                      └────────────────┬────────────────┘
+                                       │
+                      [Accessibility Window State Change]
+                                       │
+                                       ▼
+                      ┌─────────────────────────────────┐
+                      │  AdSkipAccessibilityService     │
+                      │  Detects Ad Nodes in Hierarchy  │
+                      └────────┬───────────────┬────────┘
+                               │               │
+                 If Ad Playing │               │ Skip Button Ready
+                               ▼               ▼
+                 ┌───────────────────┐   ┌──────────────────────┐
+                 │ 🔇 Mute Stream    │   │ ⏩ Perform Node Click│
+                 │ 🛡️ Show Shield    │   │ 🔊 Restore Volume    │
+                 └───────────────────┘   └──────────────────────┘
+```
 
-### 🎨 WCAG AAA Contrast Matrix
-All interactive and readable typography strictly passes **WCAG AAA** standards:
-- **Violet vs Midnight**: `7.00:1` (AAA)
-- **Blush vs Midnight**: `16.85:1` (AAA)
-- **Lime vs Midnight**: `9.78:1` (AAA)
-- **Blush 70% vs Ultramarine**: `8.77:1` (AAA)
+1. **Passive Event Listening**:
+   When YouTube changes views, Android dispatches an `AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED`. Hush only wakes up when the event originates from the target media package (`com.google.android.youtube`).
 
-### 🌊 Motion Choreography
-- **Concentric Pulse Glow**: Dual radar-style pulse rings animating indefinitely behind the live status indicator when active.
-- **Hero State Morphing**: Color shifts via `ArgbEvaluator` between OFFLINE, ACTIVE (Solid Violet), and PAUSED states.
-- **Micro-haptics & Elastic Elevation**: Cards and switch tiles subtly scale (`0.92x` → `1.0x`) with `FastOutSlowInInterpolator` alongside clock-tick haptic feedback.
-- **Accessibility Friendly**: Reads system `ANIMATOR_DURATION_SCALE`; transitions cleanly collapse to instantaneous state shifts when "Reduce Motion" is toggled in device settings.
+2. **Sub-second Affordance Detection**:
+   Hush scans the node hierarchy for resource IDs and view texts representing ad countdowns and skip actions (such as `skip_ad_button` or `modern_skip_ad_button`).
+
+3. **Atomic Execution**:
+   - **Auto-Skip**: As soon as the button turns clickable, an atomic `ACTION_CLICK` action is dispatched to dismiss the ad.
+   - **Media Mute**: While an ad node is detected, Hush mutes `AudioManager.STREAM_MUSIC` without altering your ringer or notification levels, and restores it the instant normal video playback resumes.
+   - **Touch-Through Ad Shield**: For unskippable ads, an opaque touch-through window overlay (`TYPE_ACCESSIBILITY_OVERLAY`) dims out intrusive visuals while allowing your normal touch gestures to pass through unhindered.
 
 ---
 
@@ -81,17 +102,48 @@ All interactive and readable typography strictly passes **WCAG AAA** standards:
 └───────────────────────────────┴─────────────────────────────────┘
 ```
 
-1. **Auto-Skip**: Actively checks `com.google.android.youtube` node hierarchies for Skip ad affordances (`id/skip_ad_button`, `id/modern_skip_ad_button`) and executes atomic clicks.
-2. **Instant Media Mute**: Intercepts ad banners and mutes `AudioManager.STREAM_MUSIC`, gracefully fading volume back upon return to the user's video.
-3. **Blackout Ad Shield**: Mounts an edge-to-edge window (`TYPE_ACCESSIBILITY_OVERLAY`) with `FLAG_NOT_TOUCHABLE` and `FLAG_NOT_FOCUSABLE` to dim out intrusive video ads without disrupting touch gestures.
-4. **Adaptive Stats**: Displays saved counts with monospace tabular numbers to eliminate jitter during counter increments.
-5. **Experimental FB Filter**: Highlights and blocks sponsored feed narratives directly in the Facebook timeline.
+- **Smart Auto-Skip**: Taps the Skip button within milliseconds of availability.
+- **Instant Media Mute**: Mutes volume on promotions and safely restores your exact volume afterward.
+- **Blackout Ad Shield**: Overlays an opaque touch-through barrier across unskippable ad frames.
+- **Facebook Feed Shield (Experimental)**: Detects and filters sponsored posts across your Facebook feed.
+- **Floating Accessibility Quick-Pause**: Tap the system accessibility button anytime to pause or resume Hush without opening the app.
+- **Live Tabular Metrics**: Tracks ads dismissed today and of all time using tabular figures to eliminate text layout jumps.
+
+---
+
+## 💎 Visual Identity & Motion
+
+Hush follows a high-contrast dark theme engineered to look and feel like a modern Android app:
+
+<div align="center">
+<table>
+  <tr>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/03012A/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Midnight</b><br/><code>#03012A</code><br/><i>Canvas Base</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/01004D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Ultramarine</b><br/><code>#01004D</code><br/><i>Cards & Depth</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/AF80FA/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Violet</b><br/><code>#AF80FA</code><br/><i>Active Hero</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/F4E7F1/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Blush</b><br/><code>#F4E7F1</code><br/><i>Primary Text</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/95C34D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Lime</b><br/><code>#95C34D</code><br/><i>Pulse Spark</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/1A1966/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Hairline</b><br/><code>#1A1966</code><br/><i>Dividers</i></td>
+  </tr>
+</table>
+</div>
+
+### 🎨 WCAG AAA Contrast Matrix
+All interactive typography passes rigorous accessibility standards:
+- **Violet on Midnight**: `7.00:1` (WCAG AAA)
+- **Blush on Midnight**: `16.85:1` (WCAG AAA)
+- **Lime on Midnight**: `9.78:1` (WCAG AAA)
+- **Blush 70% on Ultramarine**: `8.77:1` (WCAG AAA)
+
+### 🌊 Motion Choreography
+- **Concentric Pulse Glow**: Dual radar-style pulse rings that animate continuously behind the live status indicator when active.
+- **Hero State Transitions**: Color-interpolated state transitions across OFFLINE, ACTIVE (Solid Violet), and PAUSED states.
+- **Micro-haptics & Elevation**: Cards and switch tiles subtly compress and release (`0.92x` → `1.0x`) alongside clock-tick haptics.
+- **Accessible Motion**: Seamlessly reads system `ANIMATOR_DURATION_SCALE` and collapses animations when "Reduce Motion" is enabled.
 
 ---
 
 ## 🛠️ Architecture
-
-Hush is designed with zero external bulk, operating natively on standard Android framework APIs:
 
 ```mermaid
 flowchart TD
@@ -107,69 +159,65 @@ flowchart TD
         AM[AudioManager Stream Controller]
     end
 
-    subgraph Hardware ["Device Hardware & System"]
-        YT[Target App: YouTube / FB]
-        OS[Android Accessibility Subsystem]
+    subgraph Target ["Target Application"]
+        YT[YouTube / Facebook View Hierarchy]
     end
 
-    MA -->|Configures Prefs| AS
-    OS -->|AccessibilityEvents| AS
-    AS -->|Node Hierarchy Scan| YT
+    MA -->|Save Preferences| AS
+    AS -->|AccessibilityEvents| YT
     AS -->|Perform Action Click| YT
-    AS -->|Volume Adjust| AM
-    AS -->|Blackout Shield| WM
-    AS -->|Broadcast Updates| MA
+    AS -->|Fade / Restore Volume| AM
+    AS -->|Touch-Through Blackout| WM
+    AS -->|Broadcast Event| MA
 ```
-
-- **Zero Third-Party Trackers**: No analytics, no remote telemetry, no external SDKs.
-- **Battery Preservation**: Triggers solely on accessibility window state transitions; stays in deep sleep when the screen is off or when YouTube is not focused.
 
 ---
 
-## 📱 Setup Flow (Android 13+)
+## 📱 Setup Guide (Android 13+)
 
-Sideloaded apps on Android 13, 14, 15, and 16 are restricted by default from accessing Accessibility services. Hush includes an integrated first-run stepper:
+Sideloaded APKs on Android 13, 14, 15, and 16 place accessibility permissions under "Restricted settings". Hush includes an interactive stepper to guide you:
 
-1. **Open Accessibility Settings** ➔ Select **Hush Service** ➔ Tap **OK** on the restriction prompt.
-2. **Open App Info** ➔ Tap the top-right **three dots (⋮)** ➔ Tap **"Allow restricted settings"** (Authenticate via PIN/Fingerprint).
-3. **Return to Hush** ➔ Toggle service **ON**.
+1. **Step 1**: Open **Accessibility settings** ➔ Tap **Hush Service** ➔ Press **OK** on the restricted prompt.
+2. **Step 2**: Open **App Info** ➔ Tap the top-right **three dots (⋮)** ➔ Tap **"Allow restricted settings"** (Authenticate with PIN or Fingerprint).
+3. **Step 3**: Return to **Hush** and switch the service **ON**.
 
-#### 💡 Power-User ADB Shortcut:
-If you prefer setting it up via your terminal:
+#### 💡 Terminal ADB Shortcut (Optional):
 ```bash
 adb shell appops set com.njk.adskipper ACCESS_RESTRICTED_SETTINGS allow
 ```
 
 ---
 
-## 📦 Build & Installation
+## 📦 Installation
 
-### Option 1: Direct APK Download
-Grab the pre-signed release APK directly from the repo:
-- **Signed APK**: [`app/build/outputs/apk/release/app-release.apk`](app/build/outputs/apk/release/app-release.apk)
-- **Signature Scheme**: APK Signature Scheme v2 (Signed with dedicated keystore)
+### Pre-built Release
+Download the signed release APK from GitHub Releases:
+- **Download**: [`app-release.apk`](https://github.com/itsniranjannn/YtAdskipper/releases/latest)
+- **Signature**: Verified via APK Signature Scheme v2
 
-### Option 2: Build From Source
-Clone the repository and compile using the Gradle wrapper:
-
+### Compile From Source
 ```bash
-# 1. Clone the repository
+# 1. Clone repository
 git clone https://github.com/itsniranjannn/YtAdskipper.git
 cd YtAdskipper
 
-# 2. Build Debug APK
+# 2. Build debug APK
 ./gradlew assembleDebug
 
-# 3. Build Signed Release APK (Supply environment variables if custom)
+# 3. Build release APK
 ./gradlew assembleRelease
 ```
+
+---
+
+## 🛡️ Privacy & Permissions
+
+- **No Network Permission**: Hush does not request or possess `android.permission.INTERNET`. Zero data leaves your device.
+- **On-Device Processing**: Layout evaluations happen in real-time in volatile memory; nothing is logged to disk.
+- **Disclaimer**: Hush is an independent open-source utility for personal accessibility. It is not affiliated with, endorsed by, or sponsored by YouTube, Meta, or Google LLC.
 
 ---
 
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
-
-<div align="center">
-  <sub>Crafted with passion for clean Android experiences.</sub>
-</div>
