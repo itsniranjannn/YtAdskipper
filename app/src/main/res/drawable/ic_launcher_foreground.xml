@@ -4,17 +4,26 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Concept A: Skip-Slash mark centered strictly within 66dp safe zone (21..87) -->
+    <!-- Concept A: Skip-Silence. Safe zone [21..87]. 
+         First chevron: Solid Violet, thickness 12u.
+         Second chevron: Outline Violet, thickness 10u.
+         Spark: Lime circle at (83, 77) r=3. -->
+    
+    <!-- Chevron 1: Solid -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M32,34 L48,50 L48,46 L36,34 Z" />
+        android:fillColor="@color/color_violet"
+        android:pathData="M25,32 L47,54 L25,76 L37,76 L59,54 L37,32 Z" />
+
+    <!-- Chevron 2: Outline only (drawn as path stroke width 7, or evenOdd fill) -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M32,48 L54,70 L48,70 L32,54 Z" />
+        android:strokeColor="@color/color_violet"
+        android:strokeWidth="6"
+        android:strokeLineJoin="miter"
+        android:fillColor="#00000000"
+        android:pathData="M56,35 L78,54 L56,73" />
+
+    <!-- Brand Spark: Lime Dot -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M54,34 L76,56 L70,56 L54,40 Z" />
-    <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M54,58 L66,70 L54,70 Z" />
+        android:fillColor="@color/color_lime"
+        android:pathData="M83,74 A3,3 0 1,1 82.99,74" />
 </vector>

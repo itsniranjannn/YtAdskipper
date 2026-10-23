@@ -4,19 +4,19 @@
     android:height="280dp"
     android:viewportWidth="280"
     android:viewportHeight="280">
-    <!-- Concentric decorative ring arcs rendered at subtle 12% sand opacity (#1FF5EBD0) -->
+    <!-- Violet ring arcs (#AF80FA at 18% alpha) -->
     <path
-        android:strokeColor="@color/sand_12"
+        android:strokeColor="#2EAF80FA"
         android:strokeWidth="1.5"
         android:fillColor="#00000000"
         android:pathData="M240,240 A180,180 0 0,0 60,240" />
     <path
-        android:strokeColor="@color/sand_12"
+        android:strokeColor="#2EAF80FA"
         android:strokeWidth="1.5"
         android:fillColor="#00000000"
         android:pathData="M270,270 A220,220 0 0,0 50,270" />
     <path
-        android:strokeColor="@color/sand_12"
+        android:strokeColor="#2EAF80FA"
         android:strokeWidth="1.5"
         android:fillColor="#00000000"
         android:pathData="M280,280 A250,250 0 0,0 30,280" />

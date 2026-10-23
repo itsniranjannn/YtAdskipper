@@ -1,8 +1,8 @@
 <resources>
-    <string name="app_name">Adieu</string>
+    <string name="app_name">Hush</string>
     <string name="tagline">Ads, dismissed.</string>
-    <string name="accessibility_service_label">Adieu Service</string>
-    <string name="accessibility_service_description">Watches only the YouTube app\'s screen, taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a black touch-through panel over unskippable ads. Each feature can be switched off in the app. Uses no network access.</string>
+    <string name="accessibility_service_label">Hush Service</string>
+    <string name="accessibility_service_description">Watches only the YouTube screen (and Facebook if enabled), taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a tap-through blackout shield over unskippable or sponsored posts. Each feature can be switched off in the app. Uses no network access.</string>
 
     <!-- UI Labels & Sections -->
     <string name="label_service">SERVICE</string>
@@ -33,7 +33,7 @@
     <string name="help_step_2">2. Tap the three dots (top right) and choose \"Allow restricted settings\".</string>
     <string name="help_step_3">3. Return here and tap \"Open accessibility settings\" to activate.</string>
 
-    <!-- Switches -->
+    <!-- Standard Switches -->
     <string name="switch_auto_skip">Auto-skip</string>
     <string name="switch_auto_skip_desc">Taps the Skip button instantly when available.</string>
 
@@ -43,6 +43,14 @@
     <string name="switch_shield_ads">Hide unskippable ads</string>
     <string name="switch_shield_ads_desc">Covers unskippable ad frames with a touch-through blackout shield.</string>
 
+    <!-- Optional Experimental Switch: Facebook Sponsored Post Hider -->
+    <string name="switch_fb_shield">Hide Facebook sponsored posts (experimental)</string>
+    <string name="switch_fb_shield_desc">Overlays a tap-through blackout shield over sponsored feed stories in the Facebook app.</string>
+    <string name="fb_dialog_title">Experimental Feature</string>
+    <string name="fb_dialog_message">This feature monitors the Facebook app screen to detect sponsored items and overlay a blackout shield. Because Facebook regularly updates its layouts, some ads or Reels might not be caught, and minor scroll flicker may occur. No network, VPN, or data collection is used.</string>
+    <string name="fb_dialog_enable">Enable</string>
+    <string name="fb_dialog_cancel">Cancel</string>
+
     <!-- Footer -->
-    <string name="footer_notice">Reads only the YouTube screen. No network.</string>
+    <string name="footer_notice">Reads only targeted app screens. No network.</string>
 </resources>

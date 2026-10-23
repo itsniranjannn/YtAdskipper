@@ -1,31 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Wine & Sand Identity -->
-    <color name="brand_wine">#7F011F</color>
-    <color name="brand_sand">#F5EBD0</color>
-    <color name="wine_900">#14030A</color>
-    <color name="wine_800">#240612</color>
-    <color name="wine_600">#A3052B</color>
-    <color name="hairline">#4A1424</color>
-    <color name="sand_400">#CDBF9F</color>
-    <color name="soft_tint">#F4E7F1</color>
+    <!-- Brand Identity: Hush Palette -->
+    <color name="color_midnight">#03012A</color>
+    <color name="color_ultramarine">#01004D</color>
+    <color name="color_violet">#AF80FA</color>
+    <color name="color_blush">#F4E7F1</color>
+    <color name="color_blush_70">#B8ADBA</color>
+    <color name="color_hairline">#1A1966</color>
+    <color name="color_lime">#95C34D</color>
 
-    <!-- Semantic Status Tokens (>= 4.5:1 on wine_800 & wine_900) -->
-    <color name="status_active">#7BD88F</color>
+    <!-- Semantic Status Tokens (>= 4.5:1 on Ultramarine & Midnight) -->
+    <color name="status_active">#95C34D</color>
     <color name="status_paused">#F2B84B</color>
     <color name="status_inactive">#FF7A6B</color>
 
     <!-- Theme Role Aliases -->
-    <color name="bg_root">@color/wine_900</color>
-    <color name="surface_neutral">@color/wine_800</color>
-    <color name="hairline_divider">@color/hairline</color>
-    <color name="accent">@color/brand_sand</color>
-    <color name="accent_pressed">@color/sand_400</color>
-    <color name="text_primary">@color/brand_sand</color>
-    <color name="text_secondary">@color/sand_400</color>
+    <color name="bg_root">@color/color_midnight</color>
+    <color name="surface_neutral">@color/color_ultramarine</color>
+    <color name="hairline_divider">@color/color_hairline</color>
+    <color name="hairline">@color/color_hairline</color>
+    <color name="accent">@color/color_violet</color>
+    <color name="accent_pressed">#9666E3</color>
+    <color name="text_primary">@color/color_blush</color>
+    <color name="text_secondary">@color/color_blush_70</color>
 
-    <!-- Translucent Overlay / Ring tokens -->
-    <color name="sand_12">#1FF5EBD0</color>
-    <color name="sand_24">#3DF5EBD0</color>
-    <color name="wine_track_off">#1C050E</color>
+    <!-- Backward-compatible Tokens for Existing Styles -->
+    <color name="brand_wine">@color/color_ultramarine</color>
+    <color name="brand_sand">@color/color_blush</color>
+    <color name="sand_400">@color/color_blush_70</color>
+    <color name="wine_900">@color/color_midnight</color>
+    <color name="wine_800">@color/color_ultramarine</color>
+    <color name="wine_600">@color/color_violet</color>
+    <color name="sand_12">#1FAF80FA</color>
+    <color name="sand_24">#3FAF80FA</color>
+    <color name="wine_track_off">#07052E</color>
+
+    <!-- Glow / Radial Overlay Tokens -->
+    <color name="violet_glow_start">#33AF80FA</color>
+    <color name="violet_glow_end">#00000000</color>
 </resources>

@@ -4,18 +4,22 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-    <!-- Scaled Concept A Skip-Slash: [0..108] mapped to [0..24] -->
-    <!-- Scale factor: 24/108 = 0.2222 -->
+    <!-- Scaled Concept A: 24/108 = 0.2222 -->
+    <!-- Solid chevron -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M7.11,7.56 L10.67,11.11 L10.67,10.22 L8.00,7.56 Z" />
+        android:fillColor="@color/color_violet"
+        android:pathData="M5.56,7.11 L10.44,12.00 L5.56,16.89 L8.22,16.89 L13.11,12.00 L8.22,7.11 Z" />
+
+    <!-- Outline chevron -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M7.11,10.67 L12.00,15.56 L10.67,15.56 L7.11,12.00 Z" />
+        android:strokeColor="@color/color_violet"
+        android:strokeWidth="1.33"
+        android:strokeLineJoin="miter"
+        android:fillColor="#00000000"
+        android:pathData="M12.44,7.78 L17.33,12.00 L12.44,16.22" />
+
+    <!-- Lime spark -->
     <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M12.00,7.56 L16.89,12.44 L15.56,12.44 L12.00,8.89 Z" />
-    <path
-        android:fillColor="@color/brand_sand"
-        android:pathData="M12.00,12.89 L14.67,15.56 L12.00,15.56 Z" />
+        android:fillColor="@color/color_lime"
+        android:pathData="M18.44,16.44 A0.7,0.7 0 1,1 18.43,16.44" />
 </vector>

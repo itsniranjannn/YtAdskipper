@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.media.AudioManager;
 import android.os.Build;
@@ -31,10 +32,11 @@ import java.util.List;
 /**
  * AdSkipAccessibilityService
  * --------------------------
- * Core background accessibility engine for Adieu.
+ * Core background accessibility engine for Hush.
  * Watches the YouTube app's screen for ad signals: taps "Skip ad", mutes
  * media audio during promotion intervals, and overlays an opaque touch-through
  * shield over unskippable ads.
+ * Also optionally observes Facebook (com.facebook.katana) for sponsored post suppression.
  */
 @SuppressLint("AccessibilityPolicy")
 public class AdSkipAccessibilityService extends AccessibilityService {
@@ -48,12 +50,10 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     };
 
     // Text labels: findAccessibilityNodeInfosByText is a case-insensitive substring match.
-    // Skip labels: strictly "Skip ad"
     private static final String[] SKIP_LABELS = {
             "Skip ad"
     };
 
-    // Ad-presence labels: strictly "Skip ad" and "Visit advertiser"
     private static final String[] AD_PRESENCE_LABELS = {
             "Skip ad",
             "Visit advertiser"
@@ -76,32 +76,54 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     public static final String KEY_SKIP_ENABLED = "skip_enabled";
     public static final String KEY_MUTE_ENABLED = "mute_enabled";
     public static final String KEY_SHIELD_ENABLED = "shield_enabled";
+    public static final String KEY_FB_SHIELD_ENABLED = "fb_shield_enabled";
 
-    // Stretch: Counter keys
+    // Counter keys
     public static final String KEY_SKIPPED_TODAY = "skipped_today";
     public static final String KEY_SKIPPED_TOTAL = "skipped_total";
     public static final String KEY_SKIPPED_DAY_EPOCH = "skipped_day_epoch";
 
-    // Shield overlay
+    // YouTube Shield overlay
     private WindowManager windowManager;
     private FrameLayout shieldView;
     private boolean isShieldShowing = false;
     private int consecutiveScansNoAd = 0;
 
-    // Watchdog handler for 4-second ad absence
+    // Facebook Shield overlay
+    private FrameLayout fbShieldView;
+    private boolean isFbShieldShowing = false;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static final long WATCHDOG_DELAY_MS = 4000L;
+    private static final long FB_WATCHDOG_DELAY_MS = 1500L;
+
     private final Runnable shieldWatchdogRunnable = () -> {
         Log.d(TAG, "Shield watchdog timeout reached (4s no ad signal), hiding shield");
         hideShield();
+    };
+
+    private final Runnable fbWatchdogRunnable = () -> {
+        Log.d(TAG, "FB shield watchdog timeout reached (1.5s no signal), hiding FB shield");
+        hideFbShield();
     };
 
     private AccessibilityButtonController.AccessibilityButtonCallback accessibilityButtonCallback;
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
-                && event.getEventType() != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        int eventType = event.getEventType();
+        if (eventType != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+                && eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+                && eventType != AccessibilityEvent.TYPE_VIEW_SCROLLED) {
+            return;
+        }
+
+        CharSequence pkgName = event.getPackageName();
+        String currentPackage = pkgName != null ? pkgName.toString() : "";
+
+        if (isPaused()) {
+            restoreVolume();
+            hideShield();
+            hideFbShield();
             return;
         }
 
@@ -109,19 +131,33 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         if (root == null) return;
 
         try {
-            if (isPaused()) {
-                restoreVolume();
+            long now = SystemClock.elapsedRealtime();
+
+            // Handle Facebook Sponsored Posts (Experimental)
+            if ("com.facebook.katana".equals(currentPackage)) {
+                // If YouTube shield is showing, clear it
                 hideShield();
+
+                SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                boolean fbShieldEnabled = prefs.getBoolean(KEY_FB_SHIELD_ENABLED, false);
+
+                if (fbShieldEnabled) {
+                    handleFacebookScan(root);
+                } else {
+                    hideFbShield();
+                }
                 return;
             }
 
-            long now = SystemClock.elapsedRealtime();
+            // Outside Facebook, clear FB shield
+            hideFbShield();
+
+            // Handle YouTube Scanning
             if (now - lastScanTimeMs < SCAN_THROTTLE_MS) {
                 return;
             }
             lastScanTimeMs = now;
 
-            // Read preferences to gate features independently
             SharedPreferences prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             boolean skipEnabled = prefs.getBoolean(KEY_SKIP_ENABLED, true);
             boolean muteEnabled = prefs.getBoolean(KEY_MUTE_ENABLED, true);
@@ -146,14 +182,12 @@ public class AdSkipAccessibilityService extends AccessibilityService {
                 }
             }
 
-            // Mute logic
             if (muteEnabled) {
                 updateMuteState(adShowing);
             } else {
                 restoreVolume();
             }
 
-            // Skip logic
             if (skipEnabled) {
                 if (now - lastClickTimeMs >= CLICK_COOLDOWN_MS) {
                     findAndClickSkipButton(root, now);
@@ -163,6 +197,145 @@ public class AdSkipAccessibilityService extends AccessibilityService {
             root.recycle();
         }
     }
+
+    // ── FACEBOOK SPONSORED POST HIDER ──────────────────────────────────────────
+
+    private void handleFacebookScan(AccessibilityNodeInfo root) {
+        List<AccessibilityNodeInfo> sponsoredNodes = root.findAccessibilityNodeInfosByText("Sponsored");
+        if (sponsoredNodes == null || sponsoredNodes.isEmpty()) {
+            mainHandler.removeCallbacks(fbWatchdogRunnable);
+            mainHandler.postDelayed(fbWatchdogRunnable, FB_WATCHDOG_DELAY_MS);
+            return;
+        }
+
+        try {
+            for (AccessibilityNodeInfo node : sponsoredNodes) {
+                if (node == null) continue;
+                // Confirm text equals or contains "Sponsored"
+                CharSequence text = node.getText();
+                CharSequence desc = node.getContentDescription();
+                boolean matches = (text != null && text.toString().contains("Sponsored"))
+                        || (desc != null && desc.toString().contains("Sponsored"));
+
+                if (!matches) continue;
+
+                // Find enclosing feed item container
+                AccessibilityNodeInfo feedItem = findFeedContainer(node);
+                if (feedItem != null) {
+                    Rect bounds = new Rect();
+                    feedItem.getBoundsInScreen(bounds);
+
+                    DisplayMetrics dm = getResources().getDisplayMetrics();
+                    if (bounds.width() > 0 && bounds.height() > 0 && bounds.bottom > 0 && bounds.top < dm.heightPixels) {
+                        mainHandler.removeCallbacks(fbWatchdogRunnable);
+                        showOrUpdateFbShield(bounds);
+                        feedItem.recycle();
+                        return;
+                    }
+                    feedItem.recycle();
+                }
+            }
+        } finally {
+            recycleNodeList(sponsoredNodes);
+        }
+
+        mainHandler.removeCallbacks(fbWatchdogRunnable);
+        mainHandler.postDelayed(fbWatchdogRunnable, FB_WATCHDOG_DELAY_MS);
+    }
+
+    private AccessibilityNodeInfo findFeedContainer(AccessibilityNodeInfo node) {
+        AccessibilityNodeInfo current = node;
+        int depth = 0;
+        AccessibilityNodeInfo bestCandidate = null;
+        DisplayMetrics dm = getResources().getDisplayMetrics();
+
+        while (current != null && depth < 8) {
+            Rect r = new Rect();
+            current.getBoundsInScreen(r);
+            // Feed container spans most of the screen width and reasonable post height
+            if (r.width() >= (int) (dm.widthPixels * 0.85f) && r.height() >= (int) (120 * dm.density)) {
+                bestCandidate = current;
+                break;
+            }
+            AccessibilityNodeInfo parent = current.getParent();
+            if (current != node && current != bestCandidate) {
+                current.recycle();
+            }
+            current = parent;
+            depth++;
+        }
+        return bestCandidate;
+    }
+
+    private void showOrUpdateFbShield(Rect bounds) {
+        if (windowManager == null) {
+            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        }
+        if (windowManager == null) return;
+
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        lp.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        lp.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        lp.format = PixelFormat.OPAQUE;
+        lp.gravity = Gravity.TOP | Gravity.START;
+        lp.x = bounds.left;
+        lp.y = bounds.top;
+        lp.width = bounds.width();
+        lp.height = bounds.height();
+
+        try {
+            if (!isFbShieldShowing || fbShieldView == null) {
+                if (fbShieldView == null) {
+                    fbShieldView = createFbShieldView();
+                }
+                windowManager.addView(fbShieldView, lp);
+                isFbShieldShowing = true;
+            } else {
+                windowManager.updateViewLayout(fbShieldView, lp);
+            }
+        } catch (RuntimeException e) {
+            Log.e(TAG, "Error updating FB shield view", e);
+        }
+    }
+
+    private FrameLayout createFbShieldView() {
+        FrameLayout layout = new FrameLayout(this);
+        layout.setBackgroundColor(Color.parseColor("#03012A")); // Midnight blackout
+        layout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+
+        TextView label = new TextView(this);
+        label.setText("SPONSORED POST HIDDEN");
+        label.setTextColor(Color.parseColor("#B8ADBA")); // Blush 70%
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        label.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+        label.setLetterSpacing(0.12f);
+        label.setIncludeFontPadding(false);
+
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+        );
+        lp.gravity = Gravity.CENTER;
+        layout.addView(label, lp);
+
+        return layout;
+    }
+
+    private void hideFbShield() {
+        mainHandler.removeCallbacks(fbWatchdogRunnable);
+        if (isFbShieldShowing && fbShieldView != null && windowManager != null) {
+            try {
+                windowManager.removeView(fbShieldView);
+            } catch (RuntimeException e) {
+                Log.e(TAG, "Error removing FB shield view", e);
+            }
+        }
+        isFbShieldShowing = false;
+    }
+
+    // ── YOUTUBE AD LOGIC ───────────────────────────────────────────────────────
 
     private boolean isAdCurrentlyShowing(AccessibilityNodeInfo root) {
         if (root == null) return false;
@@ -192,7 +365,6 @@ public class AdSkipAccessibilityService extends AccessibilityService {
     private void findAndClickSkipButton(AccessibilityNodeInfo root, long eventTimeMs) {
         if (root == null) return;
 
-        // 1. Try View IDs first
         for (String id : SKIP_VIEW_IDS) {
             List<AccessibilityNodeInfo> nodes = root.findAccessibilityNodeInfosByViewId(id);
             if (nodes == null || nodes.isEmpty()) continue;
@@ -213,7 +385,6 @@ public class AdSkipAccessibilityService extends AccessibilityService {
             recycleNodeList(nodes);
         }
 
-        // 2. Fall back to text labels ("Skip ad")
         for (String label : SKIP_LABELS) {
             List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText(label);
             if (matches == null || matches.isEmpty()) continue;
@@ -309,7 +480,7 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         savedVolume = -1;
     }
 
-    // ── SHIELD OVERLAY IMPLEMENTATION ──────────────────────────────────────────
+    // ── YOUTUBE SHIELD OVERLAY ─────────────────────────────────────────────────
 
     private void showOrUpdateShield() {
         if (windowManager == null) {
@@ -351,14 +522,14 @@ public class AdSkipAccessibilityService extends AccessibilityService {
 
     private FrameLayout createShieldView() {
         FrameLayout layout = new FrameLayout(this);
-        // Fill #0E0206 (dark branded blackout, fully opaque)
-        layout.setBackgroundColor(Color.parseColor("#0E0206"));
+        // Midnight blackout (#03012A)
+        layout.setBackgroundColor(Color.parseColor("#03012A"));
         layout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
 
         TextView label = new TextView(this);
-        label.setText("ADIEU");
-        // Sand 400 (#CDBF9F)
-        label.setTextColor(Color.parseColor("#CDBF9F"));
+        label.setText("HUSH");
+        // Blush 70% (#B8ADBA)
+        label.setTextColor(Color.parseColor("#B8ADBA"));
         label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         label.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
         label.setLetterSpacing(0.14f);
@@ -411,7 +582,6 @@ public class AdSkipAccessibilityService extends AccessibilityService {
 
     private void registerAccessibilityButtonCallback() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-            Log.d(TAG, "Accessibility button controller requires API 30+, skipping on this device");
             return;
         }
 
@@ -427,6 +597,7 @@ public class AdSkipAccessibilityService extends AccessibilityService {
                 if (nowPaused) {
                     restoreVolume();
                     hideShield();
+                    hideFbShield();
                 }
                 Log.d(TAG, "Accessibility button tapped, paused=" + nowPaused);
             }
@@ -458,6 +629,7 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         Log.d(TAG, "Accessibility service interrupted");
         restoreVolume();
         hideShield();
+        hideFbShield();
     }
 
     @Override
@@ -466,7 +638,7 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         registerAccessibilityButtonCallback();
-        Log.d(TAG, "AdSkipAccessibilityService connected");
+        Log.d(TAG, "Hush service connected");
     }
 
     @Override
@@ -475,5 +647,6 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         unregisterAccessibilityButtonCallback();
         restoreVolume();
         hideShield();
+        hideFbShield();
     }
 }

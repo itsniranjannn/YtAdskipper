@@ -4,7 +4,7 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/wine_900"
+    android:background="@color/color_midnight"
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
@@ -20,7 +20,7 @@
         android:paddingEnd="24dp"
         android:paddingBottom="40dp">
 
-        <!-- 1. HEADER: Logo Tile (40dp wine 12dp radius) + Wordmark + Tagline -->
+        <!-- 1. HEADER: Logo Tile (40dp Ultramarine 12dp radius) + Wordmark + Tagline -->
         <LinearLayout
             android:id="@+id/headerContainer"
             android:layout_width="match_parent"
@@ -51,13 +51,13 @@
 
                 <TextView
                     android:id="@+id/titleText"
-                    style="@style/TextAppearance.Adieu.Wordmark"
+                    style="@style/TextAppearance.Hush.Wordmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="adieu" />
+                    android:text="hush" />
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Caption"
+                    style="@style/TextAppearance.Hush.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
@@ -65,7 +65,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 2. HERO STATUS PANEL (Wine fill #7F011F, 28dp radius, 24dp padding) -->
+        <!-- 2. HERO STATUS PANEL (Ultramarine to Midnight gradient, 28dp radius, 24dp padding) -->
         <FrameLayout
             android:id="@+id/heroCard"
             android:layout_width="match_parent"
@@ -73,7 +73,7 @@
             android:layout_marginTop="24dp"
             android:background="@drawable/bg_hero_card">
 
-            <!-- Decorative Concentric Ring Arcs at 12% sand opacity -->
+            <!-- Decorative Concentric Ring Arcs at Violet 18% alpha -->
             <ImageView
                 android:layout_width="220dp"
                 android:layout_height="220dp"
@@ -101,7 +101,7 @@
                         android:layout_marginEnd="10dp"
                         android:clipChildren="false">
 
-                        <!-- Primary pulse ring -->
+                        <!-- Primary pulse ring (Lime in ACTIVE) -->
                         <View
                             android:id="@+id/statusRing"
                             android:layout_width="10dp"
@@ -130,32 +130,32 @@
 
                     <TextView
                         android:id="@+id/heroServiceLabel"
-                        style="@style/TextAppearance.Adieu.Label"
+                        style="@style/TextAppearance.Hush.Label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/label_service"
-                        android:textColor="@color/brand_sand" />
+                        android:textColor="@color/color_blush" />
                 </LinearLayout>
 
-                <!-- State Word in Display 44sp sand -->
+                <!-- State Word in Display 44sp Blush -->
                 <TextView
                     android:id="@+id/statusLabel"
-                    style="@style/TextAppearance.Adieu.Display"
+                    style="@style/TextAppearance.Hush.Display"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:text="@string/status_offline" />
 
-                <!-- One-line explanation in Body -->
+                <!-- One-line explanation in Body Blush 70% -->
                 <TextView
                     android:id="@+id/statusText"
-                    style="@style/TextAppearance.Adieu.Body"
+                    style="@style/TextAppearance.Hush.Body"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/status_desc_offline" />
 
-                <!-- Sand Pill Button (enableButton, wine text, 16dp radius, 56dp tall) -->
+                <!-- Violet Pill Button (enableButton, 56dp tall, 16dp radius, Midnight text) -->
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/enableButton"
                     android:layout_width="match_parent"
@@ -167,13 +167,13 @@
                     android:stateListAnimator="@animator/button_press"
                     android:text="@string/action_open_settings"
                     android:textAllCaps="false"
-                    android:textColor="@color/brand_wine"
+                    android:textColor="@color/color_midnight"
                     android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </FrameLayout>
 
-        <!-- STRETCH: STATS ROW UNDER HERO -->
+        <!-- STATS ROW UNDER HERO -->
         <LinearLayout
             android:id="@+id/statsContainer"
             android:layout_width="match_parent"
@@ -192,14 +192,14 @@
                 android:padding="16dp">
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Label"
+                    style="@style/TextAppearance.Hush.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_today_label" />
 
                 <TextView
                     android:id="@+id/statsTodayNumber"
-                    style="@style/TextAppearance.Adieu.Wordmark"
+                    style="@style/TextAppearance.Hush.Wordmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -217,14 +217,14 @@
                 android:padding="16dp">
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Label"
+                    style="@style/TextAppearance.Hush.Label"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/stats_all_time_label" />
 
                 <TextView
                     android:id="@+id/statsTotalNumber"
-                    style="@style/TextAppearance.Adieu.Wordmark"
+                    style="@style/TextAppearance.Hush.Wordmark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
@@ -245,22 +245,22 @@
             android:visibility="visible">
 
             <TextView
-                style="@style/TextAppearance.Adieu.Label"
+                style="@style/TextAppearance.Hush.Label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/label_restricted_help" />
 
             <TextView
-                style="@style/TextAppearance.Adieu.Body"
+                style="@style/TextAppearance.Hush.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="@string/help_title"
-                android:textColor="@color/brand_sand"
+                android:textColor="@color/color_blush"
                 android:textStyle="bold" />
 
             <TextView
-                style="@style/TextAppearance.Adieu.Caption"
+                style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
@@ -268,7 +268,7 @@
                 android:text="@string/help_step_1" />
 
             <TextView
-                style="@style/TextAppearance.Adieu.Caption"
+                style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
@@ -276,7 +276,7 @@
                 android:text="@string/help_step_2" />
 
             <TextView
-                style="@style/TextAppearance.Adieu.Caption"
+                style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
@@ -294,13 +294,13 @@
                 android:stateListAnimator="@animator/button_press"
                 android:text="@string/action_open_app_info"
                 android:textAllCaps="false"
-                android:textColor="@color/brand_sand"
+                android:textColor="@color/color_blush"
                 android:textSize="13sp" />
         </LinearLayout>
 
         <!-- 4. CONFIGURATION SECTION -->
         <TextView
-            style="@style/TextAppearance.Adieu.Label"
+            style="@style/TextAppearance.Hush.Label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -324,6 +324,7 @@
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
+                    android:id="@+id/iconAutoSkip"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
@@ -340,15 +341,15 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Body"
+                    style="@style/TextAppearance.Hush.Body"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/switch_auto_skip"
-                    android:textColor="@color/brand_sand"
+                    android:textColor="@color/color_blush"
                     android:textStyle="bold" />
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Caption"
+                    style="@style/TextAppearance.Hush.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
@@ -379,6 +380,7 @@
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
+                    android:id="@+id/iconMute"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
@@ -395,15 +397,15 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Body"
+                    style="@style/TextAppearance.Hush.Body"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/switch_mute_ads"
-                    android:textColor="@color/brand_sand"
+                    android:textColor="@color/color_blush"
                     android:textStyle="bold" />
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Caption"
+                    style="@style/TextAppearance.Hush.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
@@ -434,6 +436,7 @@
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
+                    android:id="@+id/iconShield"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:layout_gravity="center"
@@ -450,15 +453,15 @@
                 android:orientation="vertical">
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Body"
+                    style="@style/TextAppearance.Hush.Body"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/switch_shield_ads"
-                    android:textColor="@color/brand_sand"
+                    android:textColor="@color/color_blush"
                     android:textStyle="bold" />
 
                 <TextView
-                    style="@style/TextAppearance.Adieu.Caption"
+                    style="@style/TextAppearance.Hush.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
@@ -467,6 +470,62 @@
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchShield"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Switch Card 4 (Experimental): Hide Facebook sponsored posts -->
+        <LinearLayout
+            android:id="@+id/cardFbShield"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="16dp">
+
+            <FrameLayout
+                android:id="@+id/tileFbShield"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_tile_outline">
+
+                <ImageView
+                    android:id="@+id/iconFbShield"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_block" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/switch_fb_shield"
+                    android:textColor="@color/color_blush"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/switch_fb_shield_desc" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchFbShield"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -482,19 +541,19 @@
 
             <TextView
                 android:id="@+id/footerVersionText"
-                style="@style/TextAppearance.Adieu.Caption"
+                style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Adieu v1.1"
-                android:textColor="@color/sand_400" />
+                android:text="Hush v1.2"
+                android:textColor="@color/color_blush_70" />
 
             <TextView
-                style="@style/TextAppearance.Adieu.Caption"
+                style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="@string/footer_notice"
-                android:textColor="@color/sand_400" />
+                android:textColor="@color/color_blush_70" />
         </LinearLayout>
 
     </LinearLayout>

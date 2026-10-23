@@ -1,16 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_pressed="true">
         <set>
             <objectAnimator
                 android:propertyName="scaleX"
-                android:valueTo="0.94"
+                android:valueTo="0.97"
                 android:valueType="floatType"
-                android:duration="100"/>
+                android:duration="80" />
             <objectAnimator
                 android:propertyName="scaleY"
-                android:valueTo="0.94"
+                android:valueTo="0.97"
                 android:valueType="floatType"
-                android:duration="100"/>
+                android:duration="80" />
         </set>
     </item>
     <item android:state_pressed="false">
@@ -19,14 +20,14 @@
                 android:propertyName="scaleX"
                 android:valueTo="1.0"
                 android:valueType="floatType"
-                android:duration="150"
-                android:interpolator="@android:interpolator/overshoot"/>
+                android:duration="120"
+                android:interpolator="@android:interpolator/decelerate_quad" />
             <objectAnimator
                 android:propertyName="scaleY"
                 android:valueTo="1.0"
                 android:valueType="floatType"
-                android:duration="150"
-                android:interpolator="@android:interpolator/overshoot"/>
+                android:duration="120"
+                android:interpolator="@android:interpolator/decelerate_quad" />
         </set>
     </item>
 </selector>

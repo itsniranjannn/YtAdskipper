@@ -5,3 +5,4 @@
         android:name="logo_path"
         android:animation="@animator/anim_logo_trim" />
 </animated-vector>
+
