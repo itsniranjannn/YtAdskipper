@@ -1,69 +1,175 @@
-# Hush
-> *Ads, dismissed.*
+<div align="center">
 
-[![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](https://android.com)
-[![Language](https://img.shields.io/badge/language-Java-007396?logo=java&logoColor=white)](https://oracle.com/java)
-[![Min SDK](https://img.shields.io/badge/minSdk-24-blue)](https://android.com)
-[![Target SDK](https://img.shields.io/badge/targetSdk-36-blue)](https://android.com)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=01004D&height=220&section=header&text=Hush&fontSize=70&fontColor=AF80FA&animation=fadeIn&fontAlignY=38&desc=Ads,%20dismissed.%20A%20minimalist,%20fluid%20Android%20utility.&descAlignY=58&descSize=18&descAlign=50" width="100%" alt="Hush Header"/>
 
-An Android accessibility and privacy utility designed to tap YouTube's "Skip ad" button, mute media audio during promotional segments, draw a tap-through blackout shield over unskippable ads, and filter trackers and ads across all apps via an on-device local DNS loopback. Features an experimental blackout shield for Facebook sponsored posts.
+  <p align="center">
+    <a href="#key-features"><b>Features</b></a> •
+    <a href="#visual-identity--motion"><b>Design System</b></a> •
+    <a href="#architecture"><b>Architecture</b></a> •
+    <a href="#setup-flow-android-13"><b>Setup Guide</b></a> •
+    <a href="#build--installation"><b>Download APK</b></a>
+  </p>
 
----
+  <p align="center">
+    <img src="https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Platform"/>
+    <img src="https://img.shields.io/badge/Language-Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java"/>
+    <img src="https://img.shields.io/badge/minSdk-24-95C34D?style=for-the-badge&logo=android&logoColor=03012A" alt="minSdk 24"/>
+    <img src="https://img.shields.io/badge/targetSdk-36-AF80FA?style=for-the-badge&logo=google&logoColor=white" alt="targetSdk 36"/>
+    <img src="https://img.shields.io/badge/License-MIT-F4E7F1?style=for-the-badge&logoColor=03012A" alt="License"/>
+  </p>
 
-## Brand & Design System
+  <img src="https://readme-typing-svg.demolab.com?font=Bricolage+Grotesque&weight=700&size=20&duration=3000&pause=1000&color=AF80FA&center=true&vCenter=true&multiline=false&width=550&height=40&lines=Auto-skips+YouTube+ads+instantly;Silently+mutes+media+during+promotions;Touch-through+blackout+shield+for+unskippables;Designed+with+fluid+physics-driven+motion" alt="Typing SVG"/>
 
-Hush follows a high-contrast dark theme utilizing a solid Violet hero card in the ACTIVE state, contrasting Blush cards for interactive setup guidance, and Lime sparks for live indicators.
-
-### Color Tokens & Contrast Matrix
-
-| Token | Hex | Role | Contrast Ratio | WCAG Compliance |
-| :--- | :--- | :--- | :--- | :--- |
-| **Midnight** | `#03012A` | Page canvas, window background, status/nav bar, shield overlay | Canvas base | — |
-| **Ultramarine** | `#01004D` | Offline & card surfaces | Card base | — |
-| **Violet** | `#AF80FA` | Primary active hero surface, buttons, active tiles | **7.00:1** vs Midnight | **AAA** |
-| **Blush** | `#F4E7F1` | Light setup surface, primary text on dark cards | **16.85:1** vs Midnight / **15.83:1** vs Ultramarine | **AAA** |
-| **Blush 70%** | `#B8ADBA` | Secondary text, captions, descriptions | **9.34:1** vs Midnight / **8.77:1** vs Ultramarine | **AAA** |
-| **Lime** | `#95C34D` | Active spark dot, pulsing status ring, live counter highlight | **9.78:1** vs Midnight / **9.19:1** vs Ultramarine | **AAA** |
-| **Hairline** | `#1A1966` | 1dp card borders & hairline dividers | Structural | — |
-| **PAUSED** | `#F2B84B` | Paused state indicator | **11.26:1** vs Midnight | **AAA** |
-| **NOT ENABLED** | `#FF7A6B` | Offline status indicator | **7.92:1** vs Midnight | **AAA** |
-
-### Typography Scale
-
-- **Display** (48sp / ExtraBold): Bricolage Grotesque (`statusLabel`)
-- **Wordmark** (24sp / ExtraBold): Bricolage Grotesque (`titleText`)
-- **Title** (22sp / Bold): DM Sans
-- **Body** (16sp / Regular & Medium): DM Sans
-- **Caption** (13sp / Regular): DM Sans
-- **Label** (11sp / Bold, Uppercase, Tracking +0.08em): DM Sans
-- **Tabular Numbers** (28sp / Bold, `fontFeatureSettings="tnum"`): DM Sans
+</div>
 
 ---
 
-## Key Features
+## ⚡ What is Hush?
 
-1. **Auto-skip**: Scans YouTube layouts (`com.google.android.youtube`) every 200ms and programmatically taps "Skip ad" when available.
-2. **Media Mute**: Silences media volume while an ad plays and restores previous volume immediately when the ad finishes.
-3. **Touch-Through Ad Shield**: Overlays an opaque touch-through blackout overlay (`TYPE_ACCESSIBILITY_OVERLAY`) over unskippable ads.
-4. **On-Device DNS Filter (All Apps)**:
-   - Built on `VpnService` with local loopback DNS resolution (`127.0.0.1:53` -> fallback `9.9.9.9`).
-   - Runs with foreground notification (`FOREGROUND_SERVICE_TYPE_SPECIAL_USE`) to survive 30+ minutes screen off.
-   - Clean shutdown and preference sync if revoked by another VPN app.
-   - Live filtered counter.
-5. **Facebook Sponsored Post Hider (Experimental)**: Covers sponsored feed stories in the Facebook app (`com.facebook.katana`) with an interactive confirmation prompt.
-6. **Self-Checking Setup Stepper**: Clear step-by-step guidance for Android 13+ "Restricted settings" with direct link to App Info.
-7. **Stat Counters**: Live tabular count of skipped ads today and all time.
+**Hush** is a lightweight, edge-to-edge Android utility crafted for pure peace of mind. Built with Google's Material Components, custom physics-driven spring animations, and strict zero-battery-drain accessibility checks, Hush continuously runs silently on your device to keep your streaming uninterrupted.
+
+> *"Turn the volume down on the noise, and turn up what matters."*
 
 ---
 
-## Build & APK Details
+## 💎 Visual Identity & Motion
 
-The release APK is signed and ready for installation:
+Hush features a tailored, high-contrast dark palette designed to stand out against standard material templates.
 
-- **Path**: `app/build/outputs/apk/release/app-release.apk`
-- **Application ID**: `com.njk.adskipper`
-- **Min SDK**: 24 (Android 7.0 Nougat)
-- **Target / Compile SDK**: 36 (Android 16 preview)
-- **Signature Scheme**: APK Signature Scheme v2 (Verified via `apksigner`)
-- **Debug Build**: `app/build/outputs/apk/debug/app-debug.apk`
+<div align="center">
+<table>
+  <tr>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/03012A/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Midnight</b><br/><code>#03012A</code><br/><i>Canvas</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/01004D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Ultramarine</b><br/><code>#01004D</code><br/><i>Cards & Depth</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/AF80FA/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Violet</b><br/><code>#AF80FA</code><br/><i>Active Hero</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/F4E7F1/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Blush</b><br/><code>#F4E7F1</code><br/><i>Primary Text</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/95C34D/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Lime</b><br/><code>#95C34D</code><br/><i>Pulse Spark</i></td>
+    <td align="center" width="16.6%"><img src="https://via.placeholder.com/60/1A1966/000000?text=+" width="44" height="44" style="border-radius:12px;"/><br/><b>Hairline</b><br/><code>#1A1966</code><br/><i>Dividers</i></td>
+  </tr>
+</table>
+</div>
+
+### 🎨 WCAG AAA Contrast Matrix
+All interactive and readable typography strictly passes **WCAG AAA** standards:
+- **Violet vs Midnight**: `7.00:1` (AAA)
+- **Blush vs Midnight**: `16.85:1` (AAA)
+- **Lime vs Midnight**: `9.78:1` (AAA)
+- **Blush 70% vs Ultramarine**: `8.77:1` (AAA)
+
+### 🌊 Motion Choreography
+- **Concentric Pulse Glow**: Dual radar-style pulse rings animating indefinitely behind the live status indicator when active.
+- **Hero State Morphing**: Color shifts via `ArgbEvaluator` between OFFLINE, ACTIVE (Solid Violet), and PAUSED states.
+- **Micro-haptics & Elastic Elevation**: Cards and switch tiles subtly scale (`0.92x` → `1.0x`) with `FastOutSlowInInterpolator` alongside clock-tick haptic feedback.
+- **Accessibility Friendly**: Reads system `ANIMATOR_DURATION_SCALE`; transitions cleanly collapse to instantaneous state shifts when "Reduce Motion" is toggled in device settings.
+
+---
+
+## 🚀 Key Features
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                           HUSH CORE                             │
+├───────────────────────────────┬─────────────────────────────────┤
+│  ⏩ Auto-Skip Segment         │  🔇 Smart Media Mute            │
+│  Taps skip buttons in 200ms   │  Mutes promo streams instantly  │
+├───────────────────────────────┼─────────────────────────────────┤
+│  🛡️ Touch-Through Blackout    │  📱 Facebook Sponsored Shield   │
+│  Masks non-skippable video    │  Experimental story filter      │
+├───────────────────────────────┼─────────────────────────────────┤
+│  📊 Tabular Live Stats        │  🔑 Android 13+ Setup Flow      │
+│  Track ads dismissed today    │  Guided restricted settings UX  │
+└───────────────────────────────┴─────────────────────────────────┘
+```
+
+1. **Auto-Skip**: Actively checks `com.google.android.youtube` node hierarchies for Skip ad affordances (`id/skip_ad_button`, `id/modern_skip_ad_button`) and executes atomic clicks.
+2. **Instant Media Mute**: Intercepts ad banners and mutes `AudioManager.STREAM_MUSIC`, gracefully fading volume back upon return to the user's video.
+3. **Blackout Ad Shield**: Mounts an edge-to-edge window (`TYPE_ACCESSIBILITY_OVERLAY`) with `FLAG_NOT_TOUCHABLE` and `FLAG_NOT_FOCUSABLE` to dim out intrusive video ads without disrupting touch gestures.
+4. **Adaptive Stats**: Displays saved counts with monospace tabular numbers to eliminate jitter during counter increments.
+5. **Experimental FB Filter**: Highlights and blocks sponsored feed narratives directly in the Facebook timeline.
+
+---
+
+## 🛠️ Architecture
+
+Hush is designed with zero external bulk, operating natively on standard Android framework APIs:
+
+```mermaid
+flowchart TD
+    subgraph UI ["User Interface (View System)"]
+        MA[MainActivity]
+        HM[Hero Motion Controller]
+        ST[Setup Stepper Coordinator]
+    end
+
+    subgraph Service ["Accessibility Core"]
+        AS[AdSkipAccessibilityService]
+        WM[WindowManager Overlay Manager]
+        AM[AudioManager Stream Controller]
+    end
+
+    subgraph Hardware ["Device Hardware & System"]
+        YT[Target App: YouTube / FB]
+        OS[Android Accessibility Subsystem]
+    end
+
+    MA -->|Configures Prefs| AS
+    OS -->|AccessibilityEvents| AS
+    AS -->|Node Hierarchy Scan| YT
+    AS -->|Perform Action Click| YT
+    AS -->|Volume Adjust| AM
+    AS -->|Blackout Shield| WM
+    AS -->|Broadcast Updates| MA
+```
+
+- **Zero Third-Party Trackers**: No analytics, no remote telemetry, no external SDKs.
+- **Battery Preservation**: Triggers solely on accessibility window state transitions; stays in deep sleep when the screen is off or when YouTube is not focused.
+
+---
+
+## 📱 Setup Flow (Android 13+)
+
+Sideloaded apps on Android 13, 14, 15, and 16 are restricted by default from accessing Accessibility services. Hush includes an integrated first-run stepper:
+
+1. **Open Accessibility Settings** ➔ Select **Hush Service** ➔ Tap **OK** on the restriction prompt.
+2. **Open App Info** ➔ Tap the top-right **three dots (⋮)** ➔ Tap **"Allow restricted settings"** (Authenticate via PIN/Fingerprint).
+3. **Return to Hush** ➔ Toggle service **ON**.
+
+#### 💡 Power-User ADB Shortcut:
+If you prefer setting it up via your terminal:
+```bash
+adb shell appops set com.njk.adskipper ACCESS_RESTRICTED_SETTINGS allow
+```
+
+---
+
+## 📦 Build & Installation
+
+### Option 1: Direct APK Download
+Grab the pre-signed release APK directly from the repo:
+- **Signed APK**: [`app/build/outputs/apk/release/app-release.apk`](app/build/outputs/apk/release/app-release.apk)
+- **Signature Scheme**: APK Signature Scheme v2 (Signed with dedicated keystore)
+
+### Option 2: Build From Source
+Clone the repository and compile using the Gradle wrapper:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/itsniranjannn/YtAdskipper.git
+cd YtAdskipper
+
+# 2. Build Debug APK
+./gradlew assembleDebug
+
+# 3. Build Signed Release APK (Supply environment variables if custom)
+./gradlew assembleRelease
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+<div align="center">
+  <sub>Crafted with passion for clean Android experiences.</sub>
+</div>
