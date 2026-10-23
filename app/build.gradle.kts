@@ -20,10 +20,14 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("${rootProject.projectDir}/release.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "adskipper123"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "adskipper"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "adskipper123"
+            val keystoreFile = System.getenv("KEYSTORE_FILE")?.let { file(it) }
+                ?: file("${rootProject.projectDir}/release.jks")
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
         }
     }
 
