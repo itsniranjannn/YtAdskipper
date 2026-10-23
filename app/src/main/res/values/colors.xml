@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand Identity: Hush Palette -->
+    <!-- Brand Identity: Hush Palette Tokens -->
     <color name="color_midnight">#03012A</color>
     <color name="color_ultramarine">#01004D</color>
     <color name="color_violet">#AF80FA</color>
@@ -23,6 +23,11 @@
     <color name="accent_pressed">#9666E3</color>
     <color name="text_primary">@color/color_blush</color>
     <color name="text_secondary">@color/color_blush_70</color>
+
+    <!-- Status Chip Translucent Backgrounds -->
+    <color name="chip_bg_active">#3395C34D</color>
+    <color name="chip_bg_paused">#33F2B84B</color>
+    <color name="chip_bg_offline">#33FF7A6B</color>
 
     <!-- Backward-compatible Tokens for Existing Styles -->
     <color name="brand_wine">@color/color_ultramarine</color>

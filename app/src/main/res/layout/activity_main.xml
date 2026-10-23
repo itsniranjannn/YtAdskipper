@@ -8,19 +8,22 @@
     android:fillViewport="true"
     android:fitsSystemWindows="true">
 
+    <!-- Max content width 600dp for landscape & tablets -->
     <LinearLayout
         android:id="@+id/rootContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:maxWidth="600dp"
         android:orientation="vertical"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:paddingStart="24dp"
         android:paddingTop="24dp"
         android:paddingEnd="24dp"
-        android:paddingBottom="40dp">
+        android:paddingBottom="48dp">
 
-        <!-- 1. HEADER: Logo Tile (40dp Ultramarine 12dp radius) + Wordmark + Tagline -->
+        <!-- 1. HEADER: Logo Tile (40dp Ultramarine with Violet outline) + Wordmark + Tagline -->
         <LinearLayout
             android:id="@+id/headerContainer"
             android:layout_width="match_parent"
@@ -31,7 +34,7 @@
             <FrameLayout
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@drawable/bg_tile_active">
+                android:background="@drawable/bg_header_logo_tile">
 
                 <ImageView
                     android:id="@+id/logoImage"
@@ -65,15 +68,24 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 2. HERO STATUS PANEL (Ultramarine to Midnight gradient, 28dp radius, 24dp padding) -->
+        <!-- 2. HERO STATUS PANEL (Solid Violet in ACTIVE / Ultramarine in OFFLINE) -->
         <FrameLayout
             android:id="@+id/heroCard"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:background="@drawable/bg_hero_card">
+            android:background="@drawable/bg_hero_offline">
 
-            <!-- Decorative Concentric Ring Arcs at Violet 18% alpha -->
+            <!-- Radial Violet Glow (Visible in ACTIVE and OFFLINE corner) -->
+            <View
+                android:id="@+id/heroGlow"
+                android:layout_width="260dp"
+                android:layout_height="260dp"
+                android:layout_gravity="end|top"
+                android:background="@drawable/bg_hero_radial_glow"
+                android:visibility="visible" />
+
+            <!-- Decorative Concentric Ring Arcs -->
             <ImageView
                 android:layout_width="220dp"
                 android:layout_height="220dp"
@@ -87,21 +99,26 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
-                <!-- Label Row with Status Dot & Ring -->
+                <!-- Status Chip Row with Status Dot & Double Lime Pulse Rings -->
                 <LinearLayout
+                    android:id="@+id/statusChip"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:background="@drawable/bg_status_chip"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="6dp">
 
-                    <!-- Concentric Expanding Ring Area (16dp base, expands up to 2.6x) -->
                     <FrameLayout
                         android:layout_width="16dp"
                         android:layout_height="16dp"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="8dp"
                         android:clipChildren="false">
 
-                        <!-- Primary pulse ring (Lime in ACTIVE) -->
+                        <!-- Primary Lime pulse ring -->
                         <View
                             android:id="@+id/statusRing"
                             android:layout_width="10dp"
@@ -119,7 +136,7 @@
                             android:alpha="0"
                             android:background="@drawable/dot_active" />
 
-                        <!-- Central solid status dot -->
+                        <!-- Central status dot -->
                         <View
                             android:id="@+id/statusDot"
                             android:layout_width="10dp"
@@ -137,16 +154,16 @@
                         android:textColor="@color/color_blush" />
                 </LinearLayout>
 
-                <!-- State Word in Display 44sp Blush -->
+                <!-- State Word in Display 48sp (Bricolage Grotesque ExtraBold) -->
                 <TextView
                     android:id="@+id/statusLabel"
                     style="@style/TextAppearance.Hush.Display"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="16dp"
                     android:text="@string/status_offline" />
 
-                <!-- One-line explanation in Body Blush 70% -->
+                <!-- One-line explanation -->
                 <TextView
                     android:id="@+id/statusText"
                     style="@style/TextAppearance.Hush.Body"
@@ -155,7 +172,7 @@
                     android:layout_marginTop="8dp"
                     android:text="@string/status_desc_offline" />
 
-                <!-- Violet Pill Button (enableButton, 56dp tall, 16dp radius, Midnight text) -->
+                <!-- Primary Action Button (enableButton, 56dp tall, Pill radius 999dp) -->
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/enableButton"
                     android:layout_width="match_parent"
@@ -163,17 +180,106 @@
                     android:layout_marginTop="24dp"
                     android:background="@drawable/bg_button"
                     android:elevation="0dp"
-                    android:fontFamily="@font/font_inter"
+                    android:fontFamily="@font/font_dmsans"
                     android:stateListAnimator="@animator/button_press"
                     android:text="@string/action_open_settings"
                     android:textAllCaps="false"
                     android:textColor="@color/color_midnight"
-                    android:textSize="15sp"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
             </LinearLayout>
         </FrameLayout>
 
-        <!-- STATS ROW UNDER HERO -->
+        <!-- 3. FIRST-RUN STEPPER CARD (Contrasting Blush Surface, Midnight Text) -->
+        <LinearLayout
+            android:id="@+id/setupHelpCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_blush"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/stepperBadge"
+                    style="@style/TextAppearance.Hush.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="STEP 1 OF 3"
+                    android:textColor="@color/color_ultramarine"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/stepperAndroidNotice"
+                    style="@style/TextAppearance.Hush.Caption"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="(Android 13+ Setup)"
+                    android:textColor="@color/color_ultramarine" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/stepperInstruction"
+                style="@style/TextAppearance.Hush.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="4dp"
+                android:text="@string/stepper_step1_text"
+                android:textColor="@color/color_midnight" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/helpAppInfoButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_btn_app_info"
+                android:elevation="0dp"
+                android:fontFamily="@font/font_dmsans"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_open_app_info"
+                android:textAllCaps="false"
+                android:textColor="@color/color_ultramarine"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- "Having trouble?" Expander -->
+            <TextView
+                android:id="@+id/troubleHeader"
+                style="@style/TextAppearance.Hush.Label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:text="@string/stepper_trouble_title"
+                android:textColor="@color/color_ultramarine" />
+
+            <TextView
+                android:id="@+id/troubleAdbDetails"
+                style="@style/TextAppearance.Hush.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="#15000000"
+                android:padding="8dp"
+                android:fontFamily="monospace"
+                android:text="@string/stepper_adb_hint"
+                android:textColor="@color/color_midnight"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <!-- 4. STATS ROW (Tabular Figures) -->
         <LinearLayout
             android:id="@+id/statsContainer"
             android:layout_width="match_parent"
@@ -199,12 +305,11 @@
 
                 <TextView
                     android:id="@+id/statsTodayNumber"
-                    style="@style/TextAppearance.Hush.Wordmark"
+                    style="@style/TextAppearance.Hush.TabularNumbers"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="0"
-                    android:textSize="26sp" />
+                    android:text="0" />
             </LinearLayout>
 
             <LinearLayout
@@ -224,88 +329,22 @@
 
                 <TextView
                     android:id="@+id/statsTotalNumber"
-                    style="@style/TextAppearance.Hush.Wordmark"
+                    style="@style/TextAppearance.Hush.TabularNumbers"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="0"
-                    android:textSize="26sp" />
+                    android:text="0" />
             </LinearLayout>
         </LinearLayout>
 
-        <!-- 3. SETUP HELP CARD (Android 13+ Restricted Setting Notice) -->
-        <LinearLayout
-            android:id="@+id/setupHelpCard"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="20dp"
-            android:visibility="visible">
-
-            <TextView
-                style="@style/TextAppearance.Hush.Label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_restricted_help" />
-
-            <TextView
-                style="@style/TextAppearance.Hush.Body"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:text="@string/help_title"
-                android:textColor="@color/color_blush"
-                android:textStyle="bold" />
-
-            <TextView
-                style="@style/TextAppearance.Hush.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/help_step_1" />
-
-            <TextView
-                style="@style/TextAppearance.Hush.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/help_step_2" />
-
-            <TextView
-                style="@style/TextAppearance.Hush.Caption"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/help_step_3" />
-
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/helpAppInfoButton"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="16dp"
-                android:background="@drawable/bg_tile_outline"
-                android:elevation="0dp"
-                android:fontFamily="@font/font_inter"
-                android:stateListAnimator="@animator/button_press"
-                android:text="@string/action_open_app_info"
-                android:textAllCaps="false"
-                android:textColor="@color/color_blush"
-                android:textSize="13sp" />
-        </LinearLayout>
-
-        <!-- 4. CONFIGURATION SECTION -->
+        <!-- SECTION 1: SKIP & MUTE -->
         <TextView
-            style="@style/TextAppearance.Hush.Label"
+            style="@style/TextAppearance.Hush.Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/label_configuration" />
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/label_section_skip_mute" />
 
         <!-- Switch Card 1: Auto-skip -->
         <LinearLayout
@@ -319,14 +358,14 @@
 
             <FrameLayout
                 android:id="@+id/tileAutoSkip"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
                     android:id="@+id/iconAutoSkip"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_skip" />
@@ -354,6 +393,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/switch_auto_skip_desc" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/caption_active_yt"
+                    android:textColor="@color/color_lime" />
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -375,14 +422,14 @@
 
             <FrameLayout
                 android:id="@+id/tileMute"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
                     android:id="@+id/iconMute"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_volume_off" />
@@ -410,6 +457,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/switch_mute_ads_desc" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/caption_active_yt"
+                    android:textColor="@color/color_lime" />
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -431,14 +486,14 @@
 
             <FrameLayout
                 android:id="@+id/tileShield"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/bg_tile_active">
 
                 <ImageView
                     android:id="@+id/iconShield"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_shield" />
@@ -466,6 +521,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/switch_shield_ads_desc" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/caption_active_yt"
+                    android:textColor="@color/color_lime" />
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -474,7 +537,81 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- Switch Card 4 (Experimental): Hide Facebook sponsored posts -->
+        <!-- SECTION 2: BLOCK EVERYWHERE -->
+        <TextView
+            style="@style/TextAppearance.Hush.Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="12dp"
+            android:text="@string/label_section_block_everywhere" />
+
+        <!-- FEATURED CARD: Block ads in all apps (Hush DNS VPN) -->
+        <LinearLayout
+            android:id="@+id/cardDns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="20dp">
+
+            <FrameLayout
+                android:id="@+id/tileDns"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_tile_outline">
+
+                <ImageView
+                    android:id="@+id/iconDns"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_vpn" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Body"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/switch_dns"
+                    android:textColor="@color/color_blush"
+                    android:textStyle="bold" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/switch_dns_desc" />
+
+                <TextView
+                    android:id="@+id/captionDnsStatus"
+                    style="@style/TextAppearance.Hush.TabularNumbers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textSize="13sp"
+                    android:text="@string/caption_dns_off"
+                    android:textColor="@color/color_blush_70" />
+            </LinearLayout>
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchDns"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <!-- Switch Card 5: Hide Facebook sponsored posts (Experimental) -->
         <LinearLayout
             android:id="@+id/cardFbShield"
             android:layout_width="match_parent"
@@ -487,14 +624,14 @@
 
             <FrameLayout
                 android:id="@+id/tileFbShield"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:background="@drawable/bg_tile_outline">
 
                 <ImageView
                     android:id="@+id/iconFbShield"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_block" />
@@ -522,6 +659,14 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="@string/switch_fb_shield_desc" />
+
+                <TextView
+                    style="@style/TextAppearance.Hush.Label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/caption_active_fb"
+                    android:textColor="@color/color_lime" />
             </LinearLayout>
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -530,7 +675,7 @@
                 android:layout_height="wrap_content" />
         </LinearLayout>
 
-        <!-- 5. FOOTER: Version name & Security Notice -->
+        <!-- 6. FOOTER: Version name & Security Notice -->
         <LinearLayout
             android:id="@+id/footerContainer"
             android:layout_width="match_parent"
@@ -544,7 +689,7 @@
                 style="@style/TextAppearance.Hush.Caption"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Hush v1.2"
+                android:text="Hush v2.0"
                 android:textColor="@color/color_blush_70" />
 
             <TextView

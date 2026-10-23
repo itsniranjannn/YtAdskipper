@@ -9,6 +9,9 @@
         android:pathData="M25,32 L47,54 L25,76 L37,76 L59,54 L37,32 Z M56,35 L78,54 L56,73"
         android:strokeColor="@color/color_violet"
         android:strokeWidth="5"
-        android:fillColor="@color/color_violet"
-        android:trimPathEnd="0" />
+        android:fillColor="@color/color_violet" />
+    <path
+        android:name="spark_path"
+        android:fillColor="@color/color_lime"
+        android:pathData="M83,74 A3,3 0 1,1 82.99,74" />
 </vector>

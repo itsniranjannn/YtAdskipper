@@ -18,8 +18,11 @@
         <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
         <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">false</item>
 
+        <!-- Predictive Back (Android 14+) -->
+        <item name="android:enableOnBackInvokedCallback" tools:targetApi="33">true</item>
+
         <!-- Default font family -->
-        <item name="fontFamily">@font/font_inter</item>
+        <item name="fontFamily">@font/font_dmsans</item>
 
         <!-- Switch Style -->
         <item name="switchStyle">@style/Widget.Hush.Switch</item>
@@ -33,57 +36,67 @@
         <item name="postSplashScreenTheme">@style/Theme.AdSkipperYT</item>
     </style>
 
-    <!-- Typography Scale Styles -->
+    <!-- Typography Scale Styles (Bricolage Grotesque + DM Sans) -->
     <style name="TextAppearance.Hush.Display" parent="TextAppearance.MaterialComponents.Headline1">
-        <item name="fontFamily">@font/font_archivo_black</item>
-        <item name="android:fontFamily">@font/font_archivo_black</item>
-        <item name="android:textSize">44sp</item>
+        <item name="fontFamily">@font/font_bricolage</item>
+        <item name="android:fontFamily">@font/font_bricolage</item>
+        <item name="android:textSize">48sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">52sp</item>
         <item name="android:textColor">@color/color_blush</item>
         <item name="android:letterSpacing">-0.02</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.Hush.Wordmark" parent="TextAppearance.MaterialComponents.Headline3">
-        <item name="fontFamily">@font/font_archivo_black</item>
-        <item name="android:fontFamily">@font/font_archivo_black</item>
-        <item name="android:textSize">22sp</item>
+        <item name="fontFamily">@font/font_bricolage</item>
+        <item name="android:fontFamily">@font/font_bricolage</item>
+        <item name="android:textSize">24sp</item>
         <item name="android:textColor">@color/color_blush</item>
         <item name="android:letterSpacing">-0.02</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.Hush.Title" parent="TextAppearance.MaterialComponents.Headline6">
-        <item name="fontFamily">@font/font_inter</item>
-        <item name="android:fontFamily">@font/font_inter</item>
+        <item name="fontFamily">@font/font_bricolage</item>
+        <item name="android:fontFamily">@font/font_bricolage</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">22sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">28sp</item>
         <item name="android:textColor">@color/color_blush</item>
         <item name="android:includeFontPadding">false</item>
     </style>
 
     <style name="TextAppearance.Hush.Body" parent="TextAppearance.MaterialComponents.Body1">
-        <item name="fontFamily">@font/font_inter</item>
-        <item name="android:fontFamily">@font/font_inter</item>
-        <item name="android:textSize">15sp</item>
-        <item name="android:lineHeight" tools:targetApi="p">22sp</item>
-        <item name="android:lineSpacingExtra">7dp</item>
+        <item name="fontFamily">@font/font_dmsans</item>
+        <item name="android:fontFamily">@font/font_dmsans</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">24sp</item>
+        <item name="android:lineSpacingExtra">6dp</item>
         <item name="android:textColor">@color/color_blush_70</item>
     </style>
 
     <style name="TextAppearance.Hush.Caption" parent="TextAppearance.MaterialComponents.Caption">
-        <item name="fontFamily">@font/font_inter</item>
-        <item name="android:fontFamily">@font/font_inter</item>
-        <item name="android:textSize">12sp</item>
+        <item name="fontFamily">@font/font_dmsans</item>
+        <item name="android:fontFamily">@font/font_dmsans</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">18sp</item>
         <item name="android:textColor">@color/color_blush_70</item>
     </style>
 
     <style name="TextAppearance.Hush.Label" parent="TextAppearance.MaterialComponents.Overline">
-        <item name="fontFamily">@font/font_inter</item>
-        <item name="android:fontFamily">@font/font_inter</item>
+        <item name="fontFamily">@font/font_dmsans</item>
+        <item name="android:fontFamily">@font/font_dmsans</item>
         <item name="android:textSize">11sp</item>
+        <item name="android:lineHeight" tools:targetApi="p">16sp</item>
         <item name="android:textAllCaps">true</item>
         <item name="android:letterSpacing">0.12</item>
         <item name="android:textColor">@color/color_blush_70</item>
+    </style>
+
+    <style name="TextAppearance.Hush.TabularNumbers" parent="TextAppearance.Hush.Wordmark">
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textColor">@color/color_blush</item>
     </style>
 
     <!-- Custom Switch Widget Style -->

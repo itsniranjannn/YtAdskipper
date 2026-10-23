@@ -21,9 +21,9 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("${rootProject.projectDir}/release.jks")
-            storePassword = "adskipper123"
-            keyAlias = "adskipper"
-            keyPassword = "adskipper123"
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "adskipper123"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "adskipper"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "adskipper123"
         }
     }
 

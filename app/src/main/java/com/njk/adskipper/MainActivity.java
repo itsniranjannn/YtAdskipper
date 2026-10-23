@@ -1,5 +1,6 @@
 package com.njk.adskipper;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -9,8 +10,13 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.database.ContentObserver;
+import android.graphics.Color;
 import android.net.Uri;
+import android.net.VpnService;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,6 +32,8 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -52,24 +60,43 @@ public class MainActivity extends AppCompatActivity {
     private SwitchMaterial switchMute;
     private SwitchMaterial switchShield;
 
-    // Redesign & Experimental Views
+    // Redesign & Stepper Elements
     private View statusRingSecondary;
     private View heroCard;
+    private View heroGlow;
+    private TextView heroServiceLabel;
     private View setupHelpCard;
+    private TextView stepperBadge;
+    private TextView stepperAndroidNotice;
+    private TextView stepperInstruction;
     private Button helpAppInfoButton;
+    private TextView troubleHeader;
+    private TextView troubleAdbDetails;
+
+    // Switch Cards & Tiles
     private FrameLayout tileAutoSkip;
     private FrameLayout tileMute;
     private FrameLayout tileShield;
+    private FrameLayout tileDns;
     private FrameLayout tileFbShield;
+
     private ImageView iconAutoSkip;
     private ImageView iconMute;
     private ImageView iconShield;
+    private ImageView iconDns;
     private ImageView iconFbShield;
+
     private View cardAutoSkip;
     private View cardMute;
     private View cardShield;
+    private View cardDns;
     private View cardFbShield;
+
+    private SwitchMaterial switchDns;
     private SwitchMaterial switchFbShield;
+    private TextView captionDnsStatus;
+
+    // Stats
     private TextView statsTodayNumber;
     private TextView statsTotalNumber;
 
@@ -87,6 +114,27 @@ public class MainActivity extends AppCompatActivity {
     private final Interpolator fastOutSlowIn = new FastOutSlowInInterpolator();
     private final DecelerateInterpolator decelerate = new DecelerateInterpolator();
 
+    private final ActivityResultLauncher<String> postNotificationLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                // Post-notification result received; proceed to prepare/start VPN
+                launchVpnConsentOrStart();
+            });
+
+    private final ActivityResultLauncher<Intent> vpnPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                boolean granted = result.getResultCode() == RESULT_OK;
+                if (granted) {
+                    HushVpnService.start(this);
+                    if (switchDns != null) switchDns.setChecked(true);
+                    updateTileAppearance(tileDns, iconDns, true, true);
+                    syncDnsCaption(true);
+                } else {
+                    if (switchDns != null) switchDns.setChecked(false);
+                    updateTileAppearance(tileDns, iconDns, false, true);
+                    syncDnsCaption(false);
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
@@ -102,11 +150,12 @@ public class MainActivity extends AppCompatActivity {
             }
             final View iconView = splashScreenView.getIconView();
             if (iconView != null) {
+                iconView.setAlpha(1.0f);
                 iconView.animate()
-                        .scaleX(1.2f)
-                        .scaleY(1.2f)
+                        .scaleX(1.25f)
+                        .scaleY(1.25f)
                         .alpha(0f)
-                        .setDuration(250)
+                        .setDuration(280)
                         .setInterpolator(fastOutSlowIn)
                         .withEndAction(splashScreenView::remove)
                         .start();
@@ -143,32 +192,52 @@ public class MainActivity extends AppCompatActivity {
         switchMute = findViewById(R.id.switchMute);
         switchShield = findViewById(R.id.switchShield);
 
-        // Redesign & Experimental Elements
+        // Redesign & Stepper Elements
         statusRingSecondary = findViewById(R.id.statusRingSecondary);
         heroCard = findViewById(R.id.heroCard);
+        heroGlow = findViewById(R.id.heroGlow);
+        heroServiceLabel = findViewById(R.id.heroServiceLabel);
         setupHelpCard = findViewById(R.id.setupHelpCard);
+        stepperBadge = findViewById(R.id.stepperBadge);
+        stepperAndroidNotice = findViewById(R.id.stepperAndroidNotice);
+        stepperInstruction = findViewById(R.id.stepperInstruction);
         helpAppInfoButton = findViewById(R.id.helpAppInfoButton);
+        troubleHeader = findViewById(R.id.troubleHeader);
+        troubleAdbDetails = findViewById(R.id.troubleAdbDetails);
+
+        // Switch Cards
         tileAutoSkip = findViewById(R.id.tileAutoSkip);
         tileMute = findViewById(R.id.tileMute);
         tileShield = findViewById(R.id.tileShield);
+        tileDns = findViewById(R.id.tileDns);
         tileFbShield = findViewById(R.id.tileFbShield);
+
         iconAutoSkip = findViewById(R.id.iconAutoSkip);
         iconMute = findViewById(R.id.iconMute);
         iconShield = findViewById(R.id.iconShield);
+        iconDns = findViewById(R.id.iconDns);
         iconFbShield = findViewById(R.id.iconFbShield);
+
         cardAutoSkip = findViewById(R.id.cardAutoSkip);
         cardMute = findViewById(R.id.cardMute);
         cardShield = findViewById(R.id.cardShield);
+        cardDns = findViewById(R.id.cardDns);
         cardFbShield = findViewById(R.id.cardFbShield);
+
+        switchDns = findViewById(R.id.switchDns);
         switchFbShield = findViewById(R.id.switchFbShield);
+        captionDnsStatus = findViewById(R.id.captionDnsStatus);
+
         statsTodayNumber = findViewById(R.id.statsTodayNumber);
         statsTotalNumber = findViewById(R.id.statsTotalNumber);
 
         setupSwitches();
+        setupDnsSwitch();
         setupActionButtons();
+        setupTroubleExpander();
         updateStatsView(false);
 
-        // Entrance motion: strictly resilient against partial animation cancellation
+        // Resilient Entrance Motion
         playEntranceMotion();
     }
 
@@ -181,8 +250,15 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupActionButtons() {
         enableButton.setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            startActivity(intent);
+            boolean serviceEnabled = isAccessibilityServiceEnabled();
+            if (!serviceEnabled) {
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+            } else {
+                boolean currentlyPaused = prefs.getBoolean(AdSkipAccessibilityService.KEY_PAUSED, false);
+                prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_PAUSED, !currentlyPaused).apply();
+                updateStatus();
+            }
         });
 
         if (helpAppInfoButton != null) {
@@ -192,6 +268,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+    }
+
+    private void setupTroubleExpander() {
+        if (troubleHeader == null || troubleAdbDetails == null) return;
+        troubleHeader.setOnClickListener(v -> {
+            int targetVis = troubleAdbDetails.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
+            troubleAdbDetails.setVisibility(targetVis);
+        });
     }
 
     private void setupSwitches() {
@@ -218,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
             onSwitchToggled(switchShield, tileShield, iconShield, cardShield, isChecked);
         });
 
-        // Experimental Facebook Switch
+        // Facebook Switch
         if (switchFbShield != null) {
             boolean fbEnabled = prefs.getBoolean(AdSkipAccessibilityService.KEY_FB_SHIELD_ENABLED, false);
             switchFbShield.setChecked(fbEnabled);
@@ -227,8 +311,7 @@ public class MainActivity extends AppCompatActivity {
             switchFbShield.setOnClickListener(v -> {
                 boolean targetChecked = switchFbShield.isChecked();
                 if (targetChecked) {
-                    // Show confirmation dialog before turning on
-                    switchFbShield.setChecked(false); // revert until confirmed
+                    switchFbShield.setChecked(false);
                     new AlertDialog.Builder(this)
                             .setTitle(R.string.fb_dialog_title)
                             .setMessage(R.string.fb_dialog_message)
@@ -244,6 +327,75 @@ public class MainActivity extends AppCompatActivity {
                     onSwitchToggled(switchFbShield, tileFbShield, iconFbShield, cardFbShield, false);
                 }
             });
+        }
+    }
+
+    private void setupDnsSwitch() {
+        if (switchDns == null) return;
+        syncDnsSwitch();
+        switchDns.setOnClickListener(v -> {
+            boolean wantOn = switchDns.isChecked();
+            if (wantOn) {
+                switchDns.setChecked(false); // Revert until dialog accepted
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.vpn_dialog_title)
+                        .setMessage(R.string.vpn_dialog_message)
+                        .setPositiveButton(R.string.vpn_dialog_enable, (dialog, which) -> checkNotificationPermissionAndStartVpn())
+                        .setNegativeButton(R.string.vpn_dialog_cancel, null)
+                        .show();
+            } else {
+                HushVpnService.stop(this);
+                onSwitchToggled(switchDns, tileDns, iconDns, cardDns, false);
+                syncDnsCaption(false);
+            }
+        });
+    }
+
+    private void checkNotificationPermissionAndStartVpn() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                postNotificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+                return;
+            }
+        }
+        launchVpnConsentOrStart();
+    }
+
+    private void launchVpnConsentOrStart() {
+        Intent consent = VpnService.prepare(this);
+        if (consent != null) {
+            vpnPermissionLauncher.launch(consent);
+        } else {
+            HushVpnService.start(this);
+            if (switchDns != null) switchDns.setChecked(true);
+            onSwitchToggled(switchDns, tileDns, iconDns, cardDns, true);
+            syncDnsCaption(true);
+        }
+    }
+
+    private void syncDnsSwitch() {
+        if (switchDns == null) return;
+        boolean on = HushVpnService.running
+                && prefs.getBoolean(HushVpnService.KEY_DNS_ENABLED, false);
+        switchDns.setChecked(on);
+        updateTileAppearance(tileDns, iconDns, on, false);
+        syncDnsCaption(on);
+    }
+
+    private void syncDnsCaption(boolean on) {
+        if (captionDnsStatus == null) return;
+        if (on) {
+            int blocked = prefs.getInt(HushVpnService.KEY_DNS_BLOCKED_TOTAL, 0);
+            if (blocked > 0) {
+                captionDnsStatus.setText(getString(R.string.caption_dns_on) + " • " + blocked + " filtered");
+            } else {
+                captionDnsStatus.setText(R.string.caption_dns_on);
+            }
+            captionDnsStatus.setTextColor(ContextCompat.getColor(this, R.color.color_lime));
+        } else {
+            captionDnsStatus.setText(R.string.caption_dns_off);
+            captionDnsStatus.setTextColor(ContextCompat.getColor(this, R.color.color_blush_70));
         }
     }
 
@@ -292,6 +444,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         registerAccessibilitySettingsObserver();
         registerPausePrefsListener();
+        syncDnsSwitch();
         updateStatus();
         updateStatsView(true);
     }
@@ -312,6 +465,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (AdSkipAccessibilityService.KEY_SKIPPED_TODAY.equals(key)
                     || AdSkipAccessibilityService.KEY_SKIPPED_TOTAL.equals(key)) {
                 updateStatsView(true);
+            } else if (HushVpnService.KEY_DNS_BLOCKED_TOTAL.equals(key)
+                    || HushVpnService.KEY_DNS_ENABLED.equals(key)) {
+                syncDnsSwitch();
             }
         };
         prefs.registerOnSharedPreferenceChangeListener(prefsListener);
@@ -380,9 +536,9 @@ public class MainActivity extends AppCompatActivity {
         if (statusRing != null) statusRing.setBackgroundResource(dotRes);
         if (statusRingSecondary != null) statusRingSecondary.setBackgroundResource(dotRes);
 
-        toggleSetupHelpCard(!serviceEnabled);
+        updateHeroAppearance(stateKey);
+        updateStepperVisibility(!serviceEnabled);
 
-        // Ensure Hero card itself is always 100% visible
         if (heroCard != null) {
             heroCard.setAlpha(1f);
             heroCard.setTranslationY(0f);
@@ -393,7 +549,7 @@ public class MainActivity extends AppCompatActivity {
             statusLabel.setAlpha(1f);
             statusLabel.setTranslationY(0f);
             statusText.setText(descRes);
-            statusDot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(targetColor));
+            statusDot.setBackgroundTintList(ColorStateList.valueOf(targetColor));
         } else {
             animateHeroStateTransition(labelRes, descRes, targetColor);
         }
@@ -405,7 +561,48 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void toggleSetupHelpCard(boolean show) {
+    private void updateHeroAppearance(String stateKey) {
+        if (heroCard == null) return;
+        boolean isActive = "active".equals(stateKey);
+        boolean isPaused = "paused".equals(stateKey);
+
+        if (isActive) {
+            heroCard.setBackgroundResource(R.drawable.bg_hero_active);
+            if (heroGlow != null) heroGlow.setVisibility(View.VISIBLE);
+            statusLabel.setTextColor(ContextCompat.getColor(this, R.color.color_midnight));
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.color_midnight));
+            if (heroServiceLabel != null) {
+                heroServiceLabel.setTextColor(ContextCompat.getColor(this, R.color.color_midnight));
+            }
+            enableButton.setText(R.string.status_active);
+            enableButton.setBackgroundResource(R.drawable.bg_button_midnight);
+            enableButton.setTextColor(ContextCompat.getColor(this, R.color.color_violet));
+        } else if (isPaused) {
+            heroCard.setBackgroundResource(R.drawable.bg_hero_paused);
+            if (heroGlow != null) heroGlow.setVisibility(View.GONE);
+            statusLabel.setTextColor(ContextCompat.getColor(this, R.color.color_blush));
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.color_blush_70));
+            if (heroServiceLabel != null) {
+                heroServiceLabel.setTextColor(ContextCompat.getColor(this, R.color.color_blush));
+            }
+            enableButton.setText(R.string.action_resume_protection);
+            enableButton.setBackgroundResource(R.drawable.bg_button);
+            enableButton.setTextColor(ContextCompat.getColor(this, R.color.color_midnight));
+        } else {
+            heroCard.setBackgroundResource(R.drawable.bg_hero_offline);
+            if (heroGlow != null) heroGlow.setVisibility(View.VISIBLE);
+            statusLabel.setTextColor(ContextCompat.getColor(this, R.color.color_blush));
+            statusText.setTextColor(ContextCompat.getColor(this, R.color.color_blush_70));
+            if (heroServiceLabel != null) {
+                heroServiceLabel.setTextColor(ContextCompat.getColor(this, R.color.color_blush));
+            }
+            enableButton.setText(R.string.action_open_settings);
+            enableButton.setBackgroundResource(R.drawable.bg_button);
+            enableButton.setTextColor(ContextCompat.getColor(this, R.color.color_midnight));
+        }
+    }
+
+    private void updateStepperVisibility(boolean show) {
         if (setupHelpCard == null) return;
         if (show) {
             if (setupHelpCard.getVisibility() != View.VISIBLE) {
@@ -425,6 +622,22 @@ public class MainActivity extends AppCompatActivity {
                             }
                         })
                         .start();
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (helpAppInfoButton != null) helpAppInfoButton.setVisibility(View.VISIBLE);
+                if (stepperBadge != null) stepperBadge.setText("STEP 1 & 2 OF 3");
+                if (stepperAndroidNotice != null) stepperAndroidNotice.setVisibility(View.VISIBLE);
+                if (stepperInstruction != null) {
+                    stepperInstruction.setText("1. Open accessibility settings, tap Hush Service, and press OK on the prompt.\n2. Open App info -> tap 3 dots (⋮) -> Allow restricted settings (confirm with PIN/fingerprint).\n3. Turn Hush Service ON.");
+                }
+            } else {
+                if (helpAppInfoButton != null) helpAppInfoButton.setVisibility(View.GONE);
+                if (stepperBadge != null) stepperBadge.setText("STEP 1 OF 2");
+                if (stepperAndroidNotice != null) stepperAndroidNotice.setVisibility(View.GONE);
+                if (stepperInstruction != null) {
+                    stepperInstruction.setText("1. Open accessibility settings above.\n2. Select Hush Service and turn it ON to activate protection.");
+                }
             }
         } else {
             if (setupHelpCard.getVisibility() == View.VISIBLE) {
@@ -486,7 +699,7 @@ public class MainActivity extends AppCompatActivity {
         colorTransitionAnimator.setInterpolator(fastOutSlowIn);
         colorTransitionAnimator.addUpdateListener(anim -> {
             int c = (int) anim.getAnimatedValue();
-            statusDot.setBackgroundTintList(android.content.res.ColorStateList.valueOf(c));
+            statusDot.setBackgroundTintList(ColorStateList.valueOf(c));
         });
         colorTransitionAnimator.start();
 
@@ -572,9 +785,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // ── Resilient Entrance Motion ──────────────────────────────────────────────
-    // Guarantees all views end at alpha=1f and translationY=0f, even when
-    // interrupted, cancelled, or when animator duration scale is 0.
     private void playEntranceMotion() {
         View header = findViewById(R.id.headerContainer);
         View hero = findViewById(R.id.heroCard);
@@ -583,13 +793,13 @@ public class MainActivity extends AppCompatActivity {
         View card1 = findViewById(R.id.cardAutoSkip);
         View card2 = findViewById(R.id.cardMute);
         View card3 = findViewById(R.id.cardShield);
+        View card4 = findViewById(R.id.cardDns);
         View cardFb = findViewById(R.id.cardFbShield);
         View footer = findViewById(R.id.footerContainer);
 
-        View[] views = new View[]{header, hero, stats, help, card1, card2, card3, cardFb, footer};
+        View[] views = new View[]{header, hero, stats, help, card1, card2, card3, card4, cardFb, footer};
 
         if (entrancePlayed || isAnimationDisabled() || rootContent == null) {
-            // Guarantee 100% visibility immediately
             for (View v : views) {
                 if (v != null) {
                     v.setAlpha(1f);

@@ -4,38 +4,45 @@
     <string name="accessibility_service_label">Hush Service</string>
     <string name="accessibility_service_description">Watches only the YouTube screen (and Facebook if enabled), taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a tap-through blackout shield over unskippable or sponsored posts. Each feature can be switched off in the app. Uses no network access.</string>
 
-    <!-- UI Labels & Sections -->
+    <!-- UI Labels & Section Headers -->
     <string name="label_service">SERVICE</string>
-    <string name="label_configuration">CONFIGURATION</string>
-    <string name="label_restricted_help">SETUP HELP</string>
+    <string name="label_section_skip_mute">SKIP &amp; MUTE</string>
+    <string name="label_section_block_everywhere">BLOCK EVERYWHERE</string>
     <string name="stats_today_label">SKIPPED TODAY</string>
     <string name="stats_all_time_label">ALL TIME</string>
 
     <!-- State Words -->
-    <string name="status_offline">OFFLINE</string>
-    <string name="status_not_enabled">OFFLINE</string>
+    <string name="status_offline">NOT SET UP</string>
+    <string name="status_not_enabled">NOT SET UP</string>
     <string name="status_paused">PAUSED</string>
-    <string name="status_active">ACTIVE</string>
+    <string name="status_active">ACTIVE &amp; PROTECTING</string>
 
     <!-- State Descriptions -->
-    <string name="status_desc_offline">Accessibility engine disabled. Grant system access to begin monitoring.</string>
-    <string name="status_desc_not_enabled">Accessibility engine disabled. Grant system access to begin monitoring.</string>
-    <string name="status_desc_paused">Monitoring suspended via system shortcut. Tap shortcut to resume.</string>
-    <string name="status_desc_active">Active on YouTube. Dismissing ad interruptions automatically.</string>
+    <string name="status_desc_offline">Finish the quick 3-step setup below to dismiss ads automatically.</string>
+    <string name="status_desc_not_enabled">Finish the quick 3-step setup below to dismiss ads automatically.</string>
+    <string name="status_desc_paused">Protection paused via accessibility shortcut. Tap shortcut to resume.</string>
+    <string name="status_desc_active">Monitoring YouTube. Ads and audio disruptions are dismissed seamlessly.</string>
 
     <!-- Action Buttons -->
     <string name="action_open_settings">Open accessibility settings</string>
     <string name="action_open_app_info">Open App info</string>
+    <string name="action_resume_protection">Resume Protection</string>
 
-    <!-- Setup Help Card (Android 13+ Restricted Settings) -->
-    <string name="help_title">Android 13+ Restricted Setting Notice</string>
-    <string name="help_step_1">1. Tap \"Open App info\" below.</string>
-    <string name="help_step_2">2. Tap the three dots (top right) and choose \"Allow restricted settings\".</string>
-    <string name="help_step_3">3. Return here and tap \"Open accessibility settings\" to activate.</string>
+    <!-- Stepper & Android 13+ Guidance -->
+    <string name="stepper_header">Setup Guide (Android 13+)</string>
+    <string name="stepper_step1_badge">STEP 1 OF 3</string>
+    <string name="stepper_step2_badge">STEP 2 OF 3</string>
+    <string name="stepper_step3_badge">STEP 3 OF 3</string>
+    <string name="stepper_step1_text">1. Open accessibility settings, tap Hush Service, and press OK on the prompt.</string>
+    <string name="stepper_step2_text">2. Open App info -> tap 3 dots (⋮) -> Allow restricted settings (confirm with PIN/fingerprint).</string>
+    <string name="stepper_step3_text">3. Return here and turn Hush Service ON.</string>
+    <string name="stepper_trouble_title">Having trouble?</string>
+    <string name="stepper_adb_hint">ADB fallback: adb shell appops set com.njk.adskipper ACCESS_RESTRICTED_SETTINGS allow</string>
 
-    <!-- Standard Switches -->
+    <!-- Skip & Mute Switches -->
     <string name="switch_auto_skip">Auto-skip</string>
     <string name="switch_auto_skip_desc">Taps the Skip button instantly when available.</string>
+    <string name="caption_active_yt">Active on YouTube</string>
 
     <string name="switch_mute_ads">Mute ads</string>
     <string name="switch_mute_ads_desc">Silences media audio during promotional segments.</string>
@@ -43,14 +50,30 @@
     <string name="switch_shield_ads">Hide unskippable ads</string>
     <string name="switch_shield_ads_desc">Covers unskippable ad frames with a touch-through blackout shield.</string>
 
-    <!-- Optional Experimental Switch: Facebook Sponsored Post Hider -->
+    <!-- Block Everywhere: DNS VPN Switch -->
+    <string name="switch_dns">Block ads in all apps</string>
+    <string name="switch_dns_desc">Local on-device DNS filter. Never sends your traffic anywhere.</string>
+    <string name="caption_dns_off">DNS filter disabled</string>
+    <string name="caption_dns_on">DNS filter active</string>
+    <string name="caption_dns_revoked">VPN permission revoked by another app — tap to re-enable</string>
+
+    <string name="vpn_dialog_title">On-Device DNS Filter</string>
+    <string name="vpn_dialog_message">Hush filters known ad trackers directly on your device via a local loopback VPN. Nothing is logged, tracked, or sent to any remote server.</string>
+    <string name="vpn_dialog_enable">Enable Filter</string>
+    <string name="vpn_dialog_cancel">Cancel</string>
+
+    <!-- Facebook Switch -->
     <string name="switch_fb_shield">Hide Facebook sponsored posts (experimental)</string>
     <string name="switch_fb_shield_desc">Overlays a tap-through blackout shield over sponsored feed stories in the Facebook app.</string>
+    <string name="caption_active_fb">Active in Facebook app</string>
     <string name="fb_dialog_title">Experimental Feature</string>
     <string name="fb_dialog_message">This feature monitors the Facebook app screen to detect sponsored items and overlay a blackout shield. Because Facebook regularly updates its layouts, some ads or Reels might not be caught, and minor scroll flicker may occur. No network, VPN, or data collection is used.</string>
     <string name="fb_dialog_enable">Enable</string>
     <string name="fb_dialog_cancel">Cancel</string>
 
+    <!-- Notification Permission Explainer -->
+    <string name="notif_permission_rationale">Hush needs notification permission to keep the local DNS ad filter running smoothly in the background while the screen is off.</string>
+
     <!-- Footer -->
-    <string name="footer_notice">Reads only targeted app screens. No network.</string>
+    <string name="footer_notice">Reads only targeted app screens. No remote network logs.</string>
 </resources>
