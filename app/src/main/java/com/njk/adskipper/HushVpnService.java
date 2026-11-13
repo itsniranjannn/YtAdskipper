@@ -23,6 +23,8 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -52,6 +54,12 @@ public class HushVpnService extends VpnService {
     private static final String VPN_ADDRESS = "10.111.222.1";
     private static final String VIRTUAL_DNS = "10.111.222.2";
     private static final String[] UPSTREAMS = {"1.1.1.1", "9.9.9.9", "8.8.8.8"};
+    // Certificate names the TLS handshake must match (prevents man-in-the-middle).
+    private static final String[] UPSTREAM_HOSTS = {"cloudflare-dns.com", "dns.quad9.net", "dns.google"};
+    // true  = encrypted DNS only; if DoT is unreachable, lookups fail rather than leak in plain text.
+    // false = fall back to plain UDP when DoT fails (works on networks that block port 853).
+    private static final boolean STRICT_ENCRYPTED_DNS = false;
+    private static final long DOT_IDLE_CLOSE_MS = 20_000L;
 
     public static volatile boolean running = false;
 
@@ -62,6 +70,15 @@ public class HushVpnService extends VpnService {
     private final Set<String> blocked = new HashSet<>();
     private final AtomicInteger blockedPending = new AtomicInteger(0);
     private FileOutputStream tunOut;
+
+    // Tiny TTL cache: repeated lookups never hit the network, which saves battery and latency.
+    private static final int CACHE_MAX = 512;
+    private static final long CACHE_TTL_MS = 60_000L;
+    private static final class Cached {
+        final byte[] answer; final long expires;
+        Cached(byte[] a, long e) { answer = a; expires = e; }
+    }
+    private final Map<String, Cached> cache = new ConcurrentHashMap<>();
 
     public static void start(Context c) {
         Intent i = new Intent(c, HushVpnService.class).setAction(ACTION_START);
@@ -172,7 +189,7 @@ public class HushVpnService extends VpnService {
         running = true;
         setEnabledPref(true);
 
-        pool = Executors.newFixedThreadPool(4);
+        pool = Executors.newFixedThreadPool(3);
         tunOut = new FileOutputStream(tun.getFileDescriptor());
 
         worker = new Thread(this::packetLoop, "HushVpn-Worker");
@@ -269,7 +286,7 @@ public class HushVpnService extends VpnService {
                 dnsResponse = buildSinkholeResponse(query);
                 recordBlock();
             } else {
-                dnsResponse = forwardQuery(query);
+                dnsResponse = cachedForward(query);
             }
             if (dnsResponse == null) return;
 
@@ -354,24 +371,166 @@ public class HushVpnService extends VpnService {
         return r;
     }
 
-    private byte[] forwardQuery(byte[] q) {
-        for (String upstream : UPSTREAMS) {
-            try (DatagramSocket sock = new DatagramSocket()) {
-                protect(sock);
-                sock.setSoTimeout(1500);
-                InetAddress addr = InetAddress.getByName(upstream);
-                DatagramPacket out = new DatagramPacket(q, q.length, addr, 53);
-                sock.send(out);
-                byte[] inBuf = new byte[4096];
-                DatagramPacket in = new DatagramPacket(inBuf, inBuf.length);
-                sock.receive(in);
-                byte[] r = new byte[in.getLength()];
-                System.arraycopy(inBuf, 0, r, 0, in.getLength());
-                return r;
-            } catch (Exception ignored) {
+    private byte[] cachedForward(byte[] q) {
+        // Key = question section (name + type + class); the 2-byte ID is patched per request.
+        String key = null;
+        if (q.length > 12) {
+            key = new String(q, 12, q.length - 12, java.nio.charset.StandardCharsets.ISO_8859_1);
+            Cached c = cache.get(key);
+            if (c != null) {
+                if (c.expires > System.currentTimeMillis()) {
+                    byte[] r = c.answer.clone();
+                    r[0] = q[0];
+                    r[1] = q[1];
+                    return r;
+                }
+                cache.remove(key);
             }
         }
+        byte[] r = forwardQuery(q);
+        // Cache only clean answers (NOERROR/NXDOMAIN, not truncated).
+        if (key != null && r != null && r.length > 12 && (r[2] & 0x02) == 0
+                && ((r[3] & 0x0F) == 0 || (r[3] & 0x0F) == 3)) {
+            if (cache.size() >= CACHE_MAX) cache.clear();
+            cache.put(key, new Cached(r.clone(), System.currentTimeMillis() + CACHE_TTL_MS));
+        }
+        return r;
+    }
+
+    private byte[] forwardQuery(byte[] q) {
+        for (int i = 0; i < UPSTREAMS.length; i++) {
+            byte[] r = forwardDot(q, i);
+            if (r != null) return r;
+        }
+        if (STRICT_ENCRYPTED_DNS) return null;
+        for (String upstream : UPSTREAMS) {
+            byte[] r = forwardUdp(q, upstream);
+            if (r == null) continue;
+            if ((r[2] & 0x02) != 0) {
+                byte[] t = forwardTcp(q, upstream);
+                if (t != null) return t;
+            }
+            return r;
+        }
         return null;
+    }
+
+    // ── DNS over TLS (RFC 7858): one kept-alive connection, closed after 20s idle so the
+    //    radio and CPU can sleep. Queries are serialised on this connection.
+    private final Object dotLock = new Object();
+    private javax.net.ssl.SSLSocket dotSock;
+    private int dotIndex = -1;
+    private long dotLastUse;
+    private final android.os.Handler dotHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable dotIdleCloser = () -> {
+        synchronized (dotLock) {
+            if (dotSock != null && System.currentTimeMillis() - dotLastUse >= DOT_IDLE_CLOSE_MS) {
+                closeDot();
+            }
+        }
+    };
+
+    private void closeDot() {
+        if (dotSock != null) {
+            try { dotSock.close(); } catch (Exception ignored) {}
+        }
+        dotSock = null;
+        dotIndex = -1;
+    }
+
+    private javax.net.ssl.SSLSocket openDot(int idx) throws IOException {
+        java.net.Socket plain = new java.net.Socket();
+        try {
+            protect(plain); // keep this socket outside the VPN tunnel
+            plain.connect(new java.net.InetSocketAddress(UPSTREAMS[idx], 853), 2000);
+            javax.net.ssl.SSLSocket ssl = (javax.net.ssl.SSLSocket)
+                    ((javax.net.ssl.SSLSocketFactory) javax.net.ssl.SSLSocketFactory.getDefault())
+                            .createSocket(plain, UPSTREAM_HOSTS[idx], 853, true);
+            ssl.setSoTimeout(3000);
+            ssl.startHandshake();
+            // Explicit certificate-name check against the resolver's hostname.
+            if (!javax.net.ssl.HttpsURLConnection.getDefaultHostnameVerifier()
+                    .verify(UPSTREAM_HOSTS[idx], ssl.getSession())) {
+                ssl.close();
+                throw new IOException("DoT certificate hostname mismatch");
+            }
+            return ssl;
+        } catch (IOException | RuntimeException e) {
+            try { plain.close(); } catch (Exception ignored) {}
+            throw e instanceof IOException ? (IOException) e : new IOException(e);
+        }
+    }
+
+    private byte[] forwardDot(byte[] q, int idx) {
+        synchronized (dotLock) {
+            for (int attempt = 0; attempt < 2; attempt++) {
+                try {
+                    if (dotSock == null || dotIndex != idx || dotSock.isClosed()) {
+                        closeDot();
+                        dotSock = openDot(idx);
+                        dotIndex = idx;
+                    }
+                    java.io.DataOutputStream out = new java.io.DataOutputStream(dotSock.getOutputStream());
+                    out.writeShort(q.length);
+                    out.write(q);
+                    out.flush();
+                    java.io.DataInputStream in = new java.io.DataInputStream(dotSock.getInputStream());
+                    int len = in.readUnsignedShort();
+                    if (len < 12) { closeDot(); return null; }
+                    byte[] r = new byte[len];
+                    in.readFully(r);
+                    if (r[0] != q[0] || r[1] != q[1] || (r[2] & 0x80) == 0) { closeDot(); return null; }
+                    dotLastUse = System.currentTimeMillis();
+                    dotHandler.removeCallbacks(dotIdleCloser);
+                    dotHandler.postDelayed(dotIdleCloser, DOT_IDLE_CLOSE_MS);
+                    return r;
+                } catch (Exception e) {
+                    closeDot(); // stale or broken connection: retry once on a fresh one
+                }
+            }
+            return null;
+        }
+    }
+
+    private byte[] forwardUdp(byte[] q, String upstream) {
+        try (DatagramSocket sock = new DatagramSocket()) {
+            protect(sock);
+            sock.setSoTimeout(1000);
+            // connect() makes the socket drop packets from any other address (anti-spoofing).
+            sock.connect(InetAddress.getByName(upstream), 53);
+            sock.send(new DatagramPacket(q, q.length));
+            byte[] inBuf = new byte[4096];
+            DatagramPacket in = new DatagramPacket(inBuf, inBuf.length);
+            sock.receive(in);
+            byte[] r = new byte[in.getLength()];
+            System.arraycopy(inBuf, 0, r, 0, in.getLength());
+            // Reply must echo our transaction ID and be a response, or it is discarded.
+            if (r.length < 12 || r[0] != q[0] || r[1] != q[1] || (r[2] & 0x80) == 0) return null;
+            return r;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private byte[] forwardTcp(byte[] q, String upstream) {
+        try (java.net.Socket sock = new java.net.Socket()) {
+            protect(sock);
+            sock.setSoTimeout(2000);
+            sock.connect(new java.net.InetSocketAddress(upstream, 53), 1500);
+            java.io.DataOutputStream out = new java.io.DataOutputStream(sock.getOutputStream());
+            out.writeShort(q.length);
+            out.write(q);
+            out.flush();
+            java.io.DataInputStream in = new java.io.DataInputStream(sock.getInputStream());
+            int len = in.readUnsignedShort();
+            if (len < 12 || len > 65535) return null;
+            byte[] r = new byte[len];
+            in.readFully(r);
+            if (r[0] != q[0] || r[1] != q[1] || (r[2] & 0x80) == 0) return null;
+            return r;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private byte[] buildUdpPacket(byte[] srcIp, byte[] dstIp, int srcPort, int dstPort, byte[] payload) {
@@ -444,6 +603,9 @@ public class HushVpnService extends VpnService {
         stopping = true;
         running = false;
         flushBlockedCounter();
+        cache.clear();
+        synchronized (dotLock) { closeDot(); }
+        dotHandler.removeCallbacks(dotIdleCloser);
         setEnabledPref(false);
         if (pool != null) {
             try { pool.shutdownNow(); } catch (Exception ignored) {}

@@ -19,3 +19,7 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Keep the entry points Android instantiates by name
+-keep class com.njk.adskipper.AdSkipAccessibilityService
+-keep class com.njk.adskipper.HushVpnService
+-keep class com.njk.adskipper.MainActivity

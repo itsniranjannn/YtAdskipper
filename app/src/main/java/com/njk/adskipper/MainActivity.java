@@ -78,22 +78,18 @@ public class MainActivity extends AppCompatActivity {
     private FrameLayout tileMute;
     private FrameLayout tileShield;
     private FrameLayout tileDns;
-    private FrameLayout tileFbShield;
 
     private ImageView iconAutoSkip;
     private ImageView iconMute;
     private ImageView iconShield;
     private ImageView iconDns;
-    private ImageView iconFbShield;
 
     private View cardAutoSkip;
     private View cardMute;
     private View cardShield;
     private View cardDns;
-    private View cardFbShield;
 
     private SwitchMaterial switchDns;
-    private SwitchMaterial switchFbShield;
     private TextView captionDnsStatus;
 
     // Stats
@@ -210,22 +206,18 @@ public class MainActivity extends AppCompatActivity {
         tileMute = findViewById(R.id.tileMute);
         tileShield = findViewById(R.id.tileShield);
         tileDns = findViewById(R.id.tileDns);
-        tileFbShield = findViewById(R.id.tileFbShield);
 
         iconAutoSkip = findViewById(R.id.iconAutoSkip);
         iconMute = findViewById(R.id.iconMute);
         iconShield = findViewById(R.id.iconShield);
         iconDns = findViewById(R.id.iconDns);
-        iconFbShield = findViewById(R.id.iconFbShield);
 
         cardAutoSkip = findViewById(R.id.cardAutoSkip);
         cardMute = findViewById(R.id.cardMute);
         cardShield = findViewById(R.id.cardShield);
         cardDns = findViewById(R.id.cardDns);
-        cardFbShield = findViewById(R.id.cardFbShield);
 
         switchDns = findViewById(R.id.switchDns);
-        switchFbShield = findViewById(R.id.switchFbShield);
         captionDnsStatus = findViewById(R.id.captionDnsStatus);
 
         statsTodayNumber = findViewById(R.id.statsTodayNumber);
@@ -239,6 +231,28 @@ public class MainActivity extends AppCompatActivity {
 
         // Resilient Entrance Motion
         playEntranceMotion();
+
+        addDiagLine();
+    }
+
+    private TextView diagText;
+
+    private void addDiagLine() {
+        View footer = findViewById(R.id.footerContainer);
+        if (!(footer instanceof android.view.ViewGroup)) return;
+        diagText = new TextView(this);
+        diagText.setTextSize(11);
+        diagText.setTextColor(0xFFB8ADBA);
+        diagText.setGravity(android.view.Gravity.CENTER);
+        diagText.setPadding(0, 16, 0, 0);
+        ((android.view.ViewGroup) footer).addView(diagText);
+        refreshDiag();
+    }
+
+    private void refreshDiag() {
+        if (diagText == null) return;
+        String d = prefs.getString(AdSkipAccessibilityService.KEY_DIAG, "service: no YouTube scan yet");
+        runOnUiThread(() -> diagText.setText("Diagnostics: " + d));
     }
 
     private boolean isAnimationDisabled() {
@@ -301,33 +315,6 @@ public class MainActivity extends AppCompatActivity {
             prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_SHIELD_ENABLED, isChecked).apply();
             onSwitchToggled(switchShield, tileShield, iconShield, cardShield, isChecked);
         });
-
-        // Facebook Switch
-        if (switchFbShield != null) {
-            boolean fbEnabled = prefs.getBoolean(AdSkipAccessibilityService.KEY_FB_SHIELD_ENABLED, false);
-            switchFbShield.setChecked(fbEnabled);
-            updateTileAppearance(tileFbShield, iconFbShield, fbEnabled, false);
-
-            switchFbShield.setOnClickListener(v -> {
-                boolean targetChecked = switchFbShield.isChecked();
-                if (targetChecked) {
-                    switchFbShield.setChecked(false);
-                    new AlertDialog.Builder(this)
-                            .setTitle(R.string.fb_dialog_title)
-                            .setMessage(R.string.fb_dialog_message)
-                            .setPositiveButton(R.string.fb_dialog_enable, (dialog, which) -> {
-                                switchFbShield.setChecked(true);
-                                prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_FB_SHIELD_ENABLED, true).apply();
-                                onSwitchToggled(switchFbShield, tileFbShield, iconFbShield, cardFbShield, true);
-                            })
-                            .setNegativeButton(R.string.fb_dialog_cancel, null)
-                            .show();
-                } else {
-                    prefs.edit().putBoolean(AdSkipAccessibilityService.KEY_FB_SHIELD_ENABLED, false).apply();
-                    onSwitchToggled(switchFbShield, tileFbShield, iconFbShield, cardFbShield, false);
-                }
-            });
-        }
     }
 
     private void setupDnsSwitch() {
@@ -447,6 +434,7 @@ public class MainActivity extends AppCompatActivity {
         syncDnsSwitch();
         updateStatus();
         updateStatsView(true);
+        refreshDiag();
     }
 
     @Override
@@ -468,6 +456,8 @@ public class MainActivity extends AppCompatActivity {
             } else if (HushVpnService.KEY_DNS_BLOCKED_TOTAL.equals(key)
                     || HushVpnService.KEY_DNS_ENABLED.equals(key)) {
                 syncDnsSwitch();
+            } else if (AdSkipAccessibilityService.KEY_DIAG.equals(key)) {
+                refreshDiag();
             }
         };
         prefs.registerOnSharedPreferenceChangeListener(prefsListener);
@@ -794,10 +784,9 @@ public class MainActivity extends AppCompatActivity {
         View card2 = findViewById(R.id.cardMute);
         View card3 = findViewById(R.id.cardShield);
         View card4 = findViewById(R.id.cardDns);
-        View cardFb = findViewById(R.id.cardFbShield);
         View footer = findViewById(R.id.footerContainer);
 
-        View[] views = new View[]{header, hero, stats, help, card1, card2, card3, card4, cardFb, footer};
+        View[] views = new View[]{header, hero, stats, help, card1, card2, card3, card4, footer};
 
         if (entrancePlayed || isAnimationDisabled() || rootContent == null) {
             for (View v : views) {

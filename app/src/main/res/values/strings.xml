@@ -2,7 +2,7 @@
     <string name="app_name">Hush</string>
     <string name="tagline">Ads, dismissed.</string>
     <string name="accessibility_service_label">Hush Service</string>
-    <string name="accessibility_service_description">Watches only the YouTube screen (and Facebook if enabled), taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a tap-through blackout shield over unskippable or sponsored posts. Each feature can be switched off in the app. Uses no network access.</string>
+    <string name="accessibility_service_description">Watches only the YouTube screen, taps the \"Skip ad\" button, can mute media volume while an ad plays, and can draw a tap-through blackout shield over unskippable ads. Each feature can be switched off in the app. Uses no network access.</string>
 
     <!-- UI Labels & Section Headers -->
     <string name="label_service">SERVICE</string>
@@ -61,15 +61,6 @@
     <string name="vpn_dialog_message">Hush filters known ad trackers directly on your device via a local loopback VPN. Nothing is logged, tracked, or sent to any remote server.</string>
     <string name="vpn_dialog_enable">Enable Filter</string>
     <string name="vpn_dialog_cancel">Cancel</string>
-
-    <!-- Facebook Switch -->
-    <string name="switch_fb_shield">Hide Facebook sponsored posts (experimental)</string>
-    <string name="switch_fb_shield_desc">Overlays a tap-through blackout shield over sponsored feed stories in the Facebook app.</string>
-    <string name="caption_active_fb">Active in Facebook app</string>
-    <string name="fb_dialog_title">Experimental Feature</string>
-    <string name="fb_dialog_message">This feature monitors the Facebook app screen to detect sponsored items and overlay a blackout shield. Because Facebook regularly updates its layouts, some ads or Reels might not be caught, and minor scroll flicker may occur. No network, VPN, or data collection is used.</string>
-    <string name="fb_dialog_enable">Enable</string>
-    <string name="fb_dialog_cancel">Cancel</string>
 
     <!-- Notification Permission Explainer -->
     <string name="notif_permission_rationale">Hush needs notification permission to keep the local DNS ad filter running smoothly in the background while the screen is off.</string>

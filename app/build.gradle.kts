@@ -33,13 +33,20 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Own-use builds: sign with the release key when present, else the debug key
+            // so a trimmed APK can still be installed for testing.
+            val rel = signingConfigs.getByName("release")
+            signingConfig = if (rel.storeFile != null) rel else signingConfigs.getByName("debug")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
+    }
+    androidResources {
+        localeFilters += listOf("en")
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -51,10 +58,7 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
-    implementation(libs.constraintlayout)
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation("androidx.dynamicanimation:dynamicanimation:1.0.0")
-    implementation("androidx.transition:transition:1.5.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
