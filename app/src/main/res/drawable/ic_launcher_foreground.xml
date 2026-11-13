@@ -5,6 +5,21 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Hush: heavy rounded H in cream on teal. Safe zone 66dp. -->
-    <path android:fillColor="#FFF6E6" android:pathData="M41.0,34.0 L41.0,34.0 A5.0,5.0 0 0 1 46.0,39.0 L46.0,69.0 A5.0,5.0 0 0 1 41.0,74.0 L41.0,74.0 A5.0,5.0 0 0 1 36.0,69.0 L36.0,39.0 A5.0,5.0 0 0 1 41.0,34.0 Z M67.0,34.0 L67.0,34.0 A5.0,5.0 0 0 1 72.0,39.0 L72.0,69.0 A5.0,5.0 0 0 1 67.0,74.0 L67.0,74.0 A5.0,5.0 0 0 1 62.0,69.0 L62.0,39.0 A5.0,5.0 0 0 1 67.0,34.0 Z M41.0,49.0 L67.0,49.0 L67.0,59.0 L41.0,59.0 Z" />
+    <!-- Hush: H whose crossbar is a sound wave fading to silence. Safe zone 66dp. -->
+    <path android:pathData="M31.5,35.5 A4.5,4.5 0 0 1 40.5,35.5 L40.5,72.5 A4.5,4.5 0 0 1 31.5,72.5 Z M67.5,35.5 A4.5,4.5 0 0 1 76.5,35.5 L76.5,72.5 A4.5,4.5 0 0 1 67.5,72.5 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:startX="30" android:startY="54" android:endX="78" android:endY="54" android:type="linear">
+                <item android:offset="0" android:color="#FFA24A" />
+                <item android:offset="1" android:color="#FF2E7E" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M36.00,54.00 L36.40,55.78 L36.80,57.47 L37.20,59.03 L37.60,60.43 L38.00,61.64 L38.40,62.62 L38.80,63.37 L39.20,63.87 L39.60,64.12 L40.00,64.10 L40.40,63.84 L40.80,63.34 L41.20,62.63 L41.60,61.72 L42.00,60.65 L42.40,59.45 L42.80,58.15 L43.20,56.78 L43.60,55.39 L44.00,54.00 L44.40,52.66 L44.80,51.39 L45.20,50.23 L45.60,49.19 L46.00,48.32 L46.40,47.61 L46.80,47.08 L47.20,46.74 L47.60,46.60 L48.00,46.64 L48.40,46.86 L48.80,47.25 L49.20,47.80 L49.60,48.48 L50.00,49.27 L50.40,50.15 L50.80,51.08 L51.20,52.06 L51.60,53.04 L52.00,54.00 L52.40,54.92 L52.80,55.78 L53.20,56.55 L53.60,57.23 L54.00,57.79 L54.40,58.23 L54.80,58.55 L55.20,58.73 L55.60,58.78 L56.00,58.71 L56.40,58.53 L56.80,58.24 L57.20,57.85 L57.60,57.40 L58.00,56.88 L58.40,56.32 L58.80,55.73 L59.20,55.14 L59.60,54.56 L60.00,54.00 L60.40,53.48 L60.80,53.02 L61.20,52.61 L61.60,52.28 L62.00,52.01 L62.40,51.83 L62.80,51.72 L63.20,51.68 L63.60,51.71 L64.00,51.80 L64.40,51.95 L64.80,52.14 L65.20,52.36 L65.60,52.61 L66.00,52.87 L66.40,53.13 L66.80,53.38 L67.20,53.61 L67.60,53.82 L68.00,54.00 L68.40,54.14 L68.80,54.25 L69.20,54.31 L69.60,54.34 L70.00,54.34 L70.40,54.30 L70.80,54.24 L71.20,54.17 L71.60,54.08 L72.00,54.00" android:fillColor="#00000000" android:strokeWidth="5.2" android:strokeLineCap="round" android:strokeLineJoin="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient android:startX="30" android:startY="54" android:endX="78" android:endY="54" android:type="linear">
+                <item android:offset="0" android:color="#FFA24A" />
+                <item android:offset="1" android:color="#FF2E7E" />
+            </gradient>
+        </aapt:attr>
+    </path>
 </vector>

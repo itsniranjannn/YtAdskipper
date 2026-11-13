@@ -444,8 +444,8 @@ public class AdSkipAccessibilityService extends AccessibilityService {
 
     private FrameLayout createShieldView() {
         FrameLayout layout = new FrameLayout(this);
-        // Midnight blackout (#03012A)
-        layout.setBackgroundColor(Color.parseColor("#03012A"));
+        // Midnight blackout (#0B0912)
+        layout.setBackgroundColor(Color.parseColor("#0B0912"));
         layout.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
 
         TextView label = new TextView(this);
