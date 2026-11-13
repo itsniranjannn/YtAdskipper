@@ -5,20 +5,6 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Hush logo: shield (protection) + double chevron (skip) + lime spark. Safe zone 66x66 centred. -->
-    <path
-        android:pathData="M54,25 L78,34 L78,54 C78,70 67,79 54,85 C41,79 30,70 30,54 L30,34 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:startX="54" android:startY="25"
-                android:endX="54" android:endY="85"
-                android:type="linear">
-                <item android:offset="0" android:color="#D9C2FF" />
-                <item android:offset="0.5" android:color="#AF80FA" />
-                <item android:offset="1" android:color="#7F52DB" />
-            </gradient>
-        </aapt:attr>
-    </path>
-    <path android:fillColor="#03012A" android:pathData="M43,44 L53,54 L43,64 L47,64 L57,54 L47,44 Z M51,44 L61,54 L51,64 L55,64 L65,54 L55,44 Z" />
-    <path android:fillColor="#95C34D" android:pathData="M77,28.5 A3.2,3.2 0 1,1 76.99,28.5" />
+    <!-- Hush: heavy rounded H in cream on teal. Safe zone 66dp. -->
+    <path android:fillColor="#FFF6E6" android:pathData="M41.0,34.0 L41.0,34.0 A5.0,5.0 0 0 1 46.0,39.0 L46.0,69.0 A5.0,5.0 0 0 1 41.0,74.0 L41.0,74.0 A5.0,5.0 0 0 1 36.0,69.0 L36.0,39.0 A5.0,5.0 0 0 1 41.0,34.0 Z M67.0,34.0 L67.0,34.0 A5.0,5.0 0 0 1 72.0,39.0 L72.0,69.0 A5.0,5.0 0 0 1 67.0,74.0 L67.0,74.0 A5.0,5.0 0 0 1 62.0,69.0 L62.0,39.0 A5.0,5.0 0 0 1 67.0,34.0 Z M41.0,49.0 L67.0,49.0 L67.0,59.0 L41.0,59.0 Z" />
 </vector>

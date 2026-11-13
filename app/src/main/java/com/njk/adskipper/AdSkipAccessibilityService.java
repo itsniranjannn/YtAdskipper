@@ -248,46 +248,20 @@ public class AdSkipAccessibilityService extends AccessibilityService {
         n = findExactText(root, "Skip ad", SKIP_TEXT);
         if (n != null) { n.recycle(); adReason = "skip-text"; return true; }
 
-        // Sponsored sheet under the player: needs BOTH labels so feed ads don't trigger it.
-        AccessibilityNodeInfo sp = findExactText(root, "Sponsored", AD_TEXT);
-        if (sp != null) {
-            AccessibilityNodeInfo vs = findExactText(root, "Visit site", VISIT_SITE_TEXT);
-            sp.recycle();
-            if (vs != null) { vs.recycle(); adReason = "sponsored+visit-site"; return true; }
-        }
         return false;
     }
 
-    /** Player bounds, extended down over the sponsored sheet (the card under the video) if present. */
+    /**
+     * While an ad plays, YouTube also slides a "Sponsored" card up under the video. Instead of
+     * trying to find that card (its labels vary), cover everything from the top of the player to
+     * the bottom of the YouTube window. It lasts only as long as the ad signal does.
+     */
     private Rect computeShieldBounds(AccessibilityNodeInfo root) {
         Rect player = findPlayerBounds(root);
-        DisplayMetrics dm = getResources().getDisplayMetrics();
-        int playerBottom = player != null ? player.bottom
-                : getStatusBarHeight() + (int) (dm.widthPixels * 9f / 16f);
-
-        // The video also carries a small "Sponsored" tag; the sheet's label sits below the video.
-        boolean sheet = false;
-        List<AccessibilityNodeInfo> matches = root.findAccessibilityNodeInfosByText("Sponsored");
-        if (matches != null) {
-            Rect r = new Rect();
-            for (AccessibilityNodeInfo m : matches) {
-                if (m == null) continue;
-                CharSequence t = m.getText();
-                CharSequence d = m.getContentDescription();
-                boolean exact = (t != null && AD_TEXT.matcher(t.toString().trim()).matches())
-                        || (d != null && AD_TEXT.matcher(d.toString().trim()).matches());
-                if (exact) {
-                    m.getBoundsInScreen(r);
-                    if (r.top >= playerBottom - 4) sheet = true;
-                }
-            }
-            recycleNodeList(matches);
-        }
-        if (!sheet) return player;
-
         Rect window = new Rect();
         root.getBoundsInScreen(window);
-        int top = player != null ? player.top : 0;
+        if (window.width() <= 0 || window.height() <= 0) return player;
+        int top = player != null ? Math.max(window.top, player.top) : window.top;
         return new Rect(window.left, top, window.right, window.bottom);
     }
 
